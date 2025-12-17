@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients Traités - Dashboard Hôpital - Medilink</title>
+    <link rel="stylesheet" href="{{ asset('assets/style.css' ) }}">
+    <link rel="stylesheet" href="{{ asset('assets/dashboard.css' ) }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Styles spécifiques pour la Liste des Patients (Hôpital) */
+        .search-patient-bar {
+            background-color: var(--color-card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            margin-bottom: 30px;
+        }
+
+        .search-patient-bar form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .search-patient-bar .input-group {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+
+        .patients-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--color-card-background);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .patients-table th, .patients-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .patients-table th {
+            background-color: #f3e5f5; /* Violet très clair pour l'en-tête */
+            color: var(--color-hopital);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .patients-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        .patients-table td {
+            color: var(--color-text);
+            font-size: 0.95em;
+        }
+
+        .patient-type-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .type-admis { 
+            background-color: #ffebee; 
+            color: #dc3545; 
+        }
+        .type-consult { 
+            background-color: #e8f5e9; 
+            color: var(--color-medecin); 
+        }
+        
+        .btn-action {
+            background-color: var(--color-hopital);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: background-color 0.2s;
+        }
+        .btn-action:hover {
+            background-color: #7b1fa2;
+        }
+    </style>
+</head>
+<body class="dashboard-body hopital-theme">
+    <div class="sidebar">
+        <h1 class="logo"><i class="fas fa-heartbeat"></i> MediLink</h1>
+        <nav class="nav-menu">
+            <a href="{{ route('dashboard_hopital') }}" class="nav-item"><i class="fas fa-columns"></i> Tableau de Bord</a>
+            <a href="{{ route('liste_patients_hopital') }}" class="nav-item active"><i class="fas fa-user-injured"></i> Patients Traités</a>
+            <a href="{{ route('liste_medecins_hopital') }}" class="nav-item"><i class="fas fa-user-md"></i> Médecins de l'Hôpital</a>
+            <a href="{{ route('profil_hopital') }}" class="nav-item profile-link"><i class="fas fa-user-circle"></i> Paramètres & Profil</a>
+            <a href="{{ route('connexion') }}   " class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header class="dashboard-header">
+            <h2>Historique des Patients Traités</h2>
+            <p>Consultez la liste des patients ayant bénéficié de soins ou d'une consultation dans votre établissement.</p>
+        </header>
+
+        <div class="search-patient-bar">
+            <form>
+                <div class="input-group">
+                    <input type="text" placeholder="Rechercher par Nom, ID ou Date..." required>
+                </div>
+                 <div class="input-group">
+                    <select>
+                        <option value="">Filtrer par Type de Soin</option>
+                        <option value="admission">Admission (Urgence)</option>
+                        <option value="consultation">Consultation Externe</option>
+                        <option value="chirurgie">Chirurgie</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn primary-btn" style="background-color: var(--color-hopital);"><i class="fas fa-filter"></i> Filtrer</button>
+            </form>
+        </div>
+
+        <table class="patients-table">
+            <thead>
+                <tr>
+                    <th>Nom du Patient</th>
+                    <th>Type de Soin</th>
+                    <th>Date de Fin/Sortie</th>
+                    <th>Médecin Responsable</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Fatou Camara (P0045)</td>
+                    <td><span class="patient-type-badge type-admis">Admission</span></td>
+                    <td>20/11/2025</td>
+                    <td>Dr. Elias Kante</td>
+                    <td>
+                        <a href="#" class="btn-action">Voir Dossier</a>
+                        <a href="#" class="btn-action"><i class="fas fa-file-pdf"></i> Rapport</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Jean Dupont (P0012)</td>
+                    <td><span class="patient-type-badge type-consult">Consultation</span></td>
+                    <td>15/11/2025</td>
+                    <td>Dr. Martin Dubois</td>
+                    <td>
+                        <a href="#" class="btn-action">Voir Dossier</a>
+                        <a href="#" class="btn-action"><i class="fas fa-file-pdf"></i> Rapport</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Marie Sarr (P0099)</td>
+                    <td><span class="patient-type-badge type-admis">Chirurgie</span></td>
+                    <td>05/10/2025</td>
+                    <td>Dr. Jean Pierre</td>
+                    <td>
+                        <a href="#" class="btn-action">Voir Dossier</a>
+                        <a href="#" class="btn-action"><i class="fas fa-file-pdf"></i> Rapport</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

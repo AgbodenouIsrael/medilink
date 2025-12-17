@@ -1,0 +1,127 @@
+/* --- Mise en Page du Dashboard --- */
+.dashboard-body {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--color-background);
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--color-card-background); /* Blanc */
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+}
+
+/* Logo Sidebar */
+.sidebar .logo {
+    font-size: 1.5em;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Menu de Navigation */
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-item {
+    text-decoration: none;
+    color: var(--color-text);
+    padding: 12px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-item i {
+    margin-right: 10px;
+}
+
+.nav-item:hover {
+    background-color: #eaf1f7;
+}
+
+/* Entête du Dashboard */
+.dashboard-header {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--color-border);
+}
+
+/* Grille du Dashboard (Les cartes de sections) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.stat-card {
+    background-color: var(--color-card-background);
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+    border-left: 5px solid var(--theme-color); /* Bordure de couleur de thème */
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card h3 {
+    margin: 15px 0 10px;
+    font-weight: 500;
+    color: var(--theme-color);
+}
+
+.icon-large {
+    font-size: 2.5em;
+    color: var(--theme-color);
+}
+
+.small-btn {
+    width: auto;
+    margin-top: 15px;
+    padding: 8px 15px;
+}
+
+/* --- Thèmes de Couleurs (Couleurs Douces) --- */
+
+/* Patient (Bleu) */
+.patient-theme {
+    --theme-color: var(--color-patient);
+}
+
+/* Médecin (Vert) */
+.medecin-theme {
+    --theme-color: var(--color-medecin);
+}
+
+/* Hôpital (Violet) */
+.hopital-theme {
+    --theme-color: var(--color-hopital);
+}
+
+/* Adaptation des éléments à la couleur du thème */
+.dashboard-body.patient-theme .nav-item.active,
+.dashboard-body.medecin-theme .nav-item.active,
+.dashboard-body.hopital-theme .nav-item.active {
+    background-color: var(--theme-color);
+    color: white;
+}
+
+/* On s'assure que les boutons primaires utilisent la couleur du thème */
+.dashboard-body .primary-btn {
+    background-color: var(--theme-color);
+}
+.dashboard-body .primary-btn:hover {
+    filter: brightness(0.9);
+}
