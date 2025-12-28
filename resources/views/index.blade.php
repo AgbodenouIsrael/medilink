@@ -16,14 +16,15 @@
         <main class="auth-section">
             <div class="card login-card">
                 <h2>Connexion</h2>
-                <form>
+                <form action="{{ route('login.submit') }}" method="POST" >
+                    @csrf
                     <div class="input-group">
                         <label for="email"><i class="fas fa-envelope"></i> Email</label>
                         <input type="email" id="email" name="email" placeholder="votre@email.com" required>
                     </div>
                     <div class="input-group">
-                        <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
-                        <input type="password" id="password" name="password" required>
+                        <label for="mot_de_passe"><i class="fas fa-lock"></i> Mot de passe</label>
+                        <input type="password" id="mot_de_passe" name="mot_de_passe" required>
                     </div>
                     <button type="submit" class="btn primary-btn">Se connecter</button>
                 </form>

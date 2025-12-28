@@ -1,14 +1,22 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PatientController;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+//enregistrement patient
+Route::post('/patients', [PatientController::class, 'store'])->name('patients.store');
 
-Route::get('/connexion', function () {
+Route::get('/', function () {
     return view('index');
 })->name('connexion');
+
+// Pour afficher la page de connexion (si tu ne l'as pas déjà fait)
+Route::get('/connexion', function () {
+    return view('index'); // Remplace 'index' par le nom de ta vue de connexion
+})->name('login');
+
+// Pour traiter les données envoyées par le formulaire de connexion
+Route::post('/connexion', [PatientController::class, 'login'])->name('login.submit');
 
 
 Route::get('/dashboard_hopital', function () {

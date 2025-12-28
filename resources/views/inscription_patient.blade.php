@@ -29,7 +29,8 @@
         <main class="card">
             <h2 class="form-title"><i class="fas fa-user-injured"></i> Créer un Compte Patient</h2>
             
-            <form action="{{ route('dashboard_patient') }}" method="POST">
+            <form action="{{ route('patients.store') }}" method="POST">
+                @csrf
                 
                 <div style="display: flex; gap: 20px;">
                     <div class="input-group" style="flex: 1;">
@@ -51,9 +52,9 @@
                         <label for="genre"><i class="fas fa-venus-mars"></i> Genre</label>
                         <select id="genre" name="genre" required>
                             <option value="">Sélectionner</option>
-                            <option value="homme">Homme</option>
-                            <option value="femme">Femme</option>
-                            <option value="autre">Autre</option>
+                            <option value="Homme">Homme</option>
+                            <option value="Femme">Femme</option>
+                            <option value="Autre">Autre</option>
                         </select>
                     </div>
                 </div>

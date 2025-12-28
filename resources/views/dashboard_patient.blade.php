@@ -24,8 +24,14 @@
 
     <div class="main-content">
         <header class="dashboard-header">
-            <h2>Bienvenue, [Nom du Patient]</h2>
+            <h2>Bienvenue, {{ Auth::user()->prenom }} {{ Auth::user()->nom }}</h2>
         </header>
+
+        @if (session('success'))
+    <div style="color: green; padding: 10px; border: 1px solid green;">
+        {{ session('success') }}
+    </div>
+         @endif
 
         <section class="dashboard-grid">
             
