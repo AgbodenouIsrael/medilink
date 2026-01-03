@@ -107,3 +107,31 @@ Route::get('/profil', function () {
 Route::get('/trouver_pharmacie', function () {
     return view('trouver_pharmacie');
 })->name('trouver_pharmacie');
+
+Route::get('/inscription_pharmacie', function () {
+    return view('inscription_pharmacie');
+})->name('inscription_pharmacie');
+
+Route::get('/dashboard_pharmacie', function () {
+    return view('dashboard_pharmacie');
+})->name('dashboard_pharmacie');
+
+Route::get('/pharmacie_add_product', function () {
+    return view('pharmacie_add_product');
+})->name('pharmacie_add_product');
+
+Route::get('/pharmacie_sales', function () {
+    return view('pharmacie_sales');
+})->name('pharmacie_sales');
+
+Route::get('/pharmacie_inventory', function () {
+    return view('pharmacie_inventory');
+})->name('pharmacie_inventory');
+
+Route::get('/pharmacie_prescription', function () {
+    return view('pharmacie_prescription');
+})->name('pharmacie_prescription');
+
+Route::get('/pharmacie_profil', function () {
+    return view('pharmacie_profil');
+})->name('pharmacie_profil');

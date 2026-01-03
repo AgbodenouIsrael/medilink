@@ -87,6 +87,8 @@
         .btn-action:hover {
             background-color: #7b1fa2;
         }
+        .error-msg { color: #dc3545; font-size: 0.85em; margin-top: 4px; display: block; }
+        .input-error { border-color: #dc3545 !important; }
     </style>
 </head>
 <body class="dashboard-body hopital-theme">
@@ -108,20 +110,36 @@
         </header>
 
         <div class="search-patient-bar">
-            <form>
+            <form action="{{ url()->current() }}" method="GET" novalidate>
+                @csrf
                 <div class="input-group">
-                    <input type="text" placeholder="Rechercher par Nom, ID ou Date..." required>
+                    <input type="text" name="q" placeholder="Rechercher par Nom, ID ou Date..." value="{{ old('q') }}" required>
+                    @error('q') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                  <div class="input-group">
-                    <select>
+                    <select name="type_soin">
                         <option value="">Filtrer par Type de Soin</option>
-                        <option value="admission">Admission (Urgence)</option>
-                        <option value="consultation">Consultation Externe</option>
-                        <option value="chirurgie">Chirurgie</option>
+                        <option value="admission" {{ old('type_soin')=='admission' ? 'selected' : '' }}>Admission (Urgence)</option>
+                        <option value="consultation" {{ old('type_soin')=='consultation' ? 'selected' : '' }}>Consultation Externe</option>
+                        <option value="chirurgie" {{ old('type_soin')=='chirurgie' ? 'selected' : '' }}>Chirurgie</option>
                     </select>
+                    @error('type_soin') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                 <button type="submit" class="btn primary-btn" style="background-color: var(--color-hopital);"><i class="fas fa-filter"></i> Filtrer</button>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                    const form = document.querySelector('.search-patient-bar form'); if(!form) return;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    form.addEventListener('submit', function(e){
+                        form.querySelectorAll('.input-error').forEach(el=>el.classList.remove('input-error'));
+                        let invalid=false;
+                        form.querySelectorAll('[required]').forEach(function(el){ if(!el.value || !el.value.toString().trim()){ invalid=true; el.classList.add('input-error'); }});
+                        if(invalid){ e.preventDefault(); const first = form.querySelector('.input-error'); if(first) first.focus(); return; }
+                        if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.orig = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; }
+                    });
+                });
+            </script>
         </div>
 
         <table class="patients-table">

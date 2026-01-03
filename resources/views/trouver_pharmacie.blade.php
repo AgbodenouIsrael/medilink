@@ -99,6 +99,8 @@
         .pharmacy-actions .btn:hover {
             background-color: #1976D2;
         }
+        .error-msg { color: #dc3545; font-size: 0.85em; margin-top: 4px; display: block; }
+        .input-error { border-color: #dc3545 !important; }
         
     </style>
 </head>
@@ -123,19 +125,48 @@
         </header>
 
         <div class="search-container">
-            <form class="search-form">
+            @if(session('success'))
+                <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;display:flex;gap:8px;align-items:center;">
+                    <i class="fas fa-check-circle"></i>
+                    <div>{{ session('success') }}</div>
+                </div>
+            @endif
+            @if(session('error'))
+                <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:6px;margin-bottom:15px;display:flex;gap:8px;align-items:center;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>{{ session('error') }}</div>
+                </div>
+            @endif
+
+            <form class="search-form" action="{{ url()->current() }}" method="GET" novalidate>
+                @csrf
                 <div class="input-group">
                     <label for="zone_search"><i class="fas fa-map-marker-alt"></i> Ma Zone</label>
-                    <input type="text" id="zone_search" name="zone" placeholder="Ex: Paris 15e, Lomé centre" value="[Zone du patient]" required>
+                    <input type="text" id="zone_search" name="zone" placeholder="Ex: Paris 15e, Lomé centre" value="{{ old('zone', 'Zone du patient') }}" required>
+                    @error('zone') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                 
                 <div class="input-group">
                     <label for="medicament_search"><i class="fas fa-pills"></i> Recherche de Médicament (Optionnel)</label>
-                    <input type="text" id="medicament_search" name="medicament" placeholder="Ex: Paracétamol, Amoxicilline">
+                    <input type="text" id="medicament_search" name="medicament" placeholder="Ex: Paracétamol, Amoxicilline" value="{{ old('medicament') }}">
+                    @error('medicament') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                 
                 <button type="submit" class="btn primary-btn"><i class="fas fa-search"></i> Rechercher</button>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                    const form = document.querySelector('.search-form'); if(!form) return;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    form.addEventListener('submit', function(e){
+                        form.querySelectorAll('.input-error').forEach(el=>el.classList.remove('input-error'));
+                        let invalid=false;
+                        form.querySelectorAll('[required]').forEach(function(el){ if(!el.value || !el.value.toString().trim()){ invalid=true; el.classList.add('input-error'); }});
+                        if(invalid){ e.preventDefault(); const first = form.querySelector('.input-error'); if(first) first.focus(); return; }
+                        if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.orig = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; }
+                    });
+                });
+            </script>
         </div>
 
         <h3>Résultats dans la zone [Zone du patient]</h3>

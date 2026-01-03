@@ -106,7 +106,7 @@
             <a href="{{ route('trouver_pharmacie') }}" class="nav-item"><i class="fas fa-prescription-bottle-alt"></i> Pharmacies</a>
             <a href="{{ route('mes_messages') }}" class="nav-item"><i class="fas fa-comments"></i> Mes Messages</a>
             <a href="{{ route('guide_hopitaux') }}" class="nav-item"><i class="fas fa-hospital-alt"></i> Guide des Hôpitaux</a>
-            <a href="{{ route('profil_patient') }}" class="nav-item active profile-link"><i class="fas fa-user-circle"></i> Mon Profil</a>
+            <a href="{{ route('profil') }}" class="nav-item active profile-link"><i class="fas fa-user-circle"></i> Mon Profil</a>
             <a href="{{ route('connexion') }}" class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
         </nav>
     </div>

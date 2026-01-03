@@ -6,66 +6,62 @@ use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password; // Pour la sécurité mot de passe
 
 class PatientController extends Controller
 {
     public function store(Request $request)
     {
-        // 1. Validation
+        // 1. Validation STRICTE
         $validatedData = $request->validate([
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
-            'date_naissance' => 'required|date',
+            // Interdit les dates futures
+            'date_naissance' => 'required|date|before:today', 
             'genre' => 'required|in:Homme,Femme,Autre',
-            'contact' => 'nullable|string|max:20',
+            'contact' => 'required|string|max:20', // Contact requis pour un patient
             'email' => 'required|email|unique:patients,email',
             'adresse' => 'nullable|string|max:255',
             'zone' => 'nullable|string|max:255',
-            'mot_de_passe' => 'required|string|min:8',
+            // Force: 8 caractères, au moins 1 lettre, 1 chiffre
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()], 
         ]);
 
-        // 2. Hachage du mot de passe
-        $validatedData['mot_de_passe'] = Hash::make($validatedData['mot_de_passe']);
+        // 2. Création (Le hachage se fait ici)
+        $patient = Patient::create([
+            'nom' => $validatedData['nom'],
+            'prenom' => $validatedData['prenom'],
+            'date_naissance' => $validatedData['date_naissance'],
+            'genre' => $validatedData['genre'],
+            'contact' => $validatedData['contact'],
+            'email' => $validatedData['email'],
+            'adresse' => $validatedData['adresse'] ?? null,
+            'zone' => $validatedData['zone'] ?? null,
+            'password' => Hash::make($request->password),
+        ]);
 
-        // --- SUPPRIME LE dd($validatedData) POUR TESTER EN RÉEL ---
+        // 3. Connexion immédiate
+        Auth::guard('web')->login($patient);
 
-        // 3. Création du patient (On ne le fait qu'UNE fois)
-        $patient = Patient::create($validatedData);
-
-        Auth::login($patient);
-
-        // 4. Connexion automatique (Optionnel mais recommandé)
-        // Note : Pour que cela fonctionne, ton Model Patient doit être configuré pour l'Auth
-        // Auth::login($patient); 
-
-        // 5. Redirection unique avec message
-        return redirect()->route('dashboard_patient')->with('success', 'Inscription réussie !');
+        // 4. Redirection
+        return redirect()->route('dashboard_patient')->with('success', 'Bienvenue sur Medilink !');
     }
-
- 
-
 
     public function login(Request $request)
-{
-    // 1. Validation des champs saisis
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'mot_de_passe' => 'required',
-    ]);
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    // 2. Tentative de connexion
-    // On utilise Auth::attempt, mais attention : Laravel cherche 'password' par défaut.
-    // Comme ta colonne s'appelle 'mot_de_passe', on fait une petite adaptation :
-    
-    if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['mot_de_passe']])) {
-        // Si ça réussit, on régénère la session pour la sécurité
-        $request->session()->regenerate();
+        // Laravel cherche 'password' dans la BDD automatiquement
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended('dashboard_patient');
+        }
 
-        return redirect()->intended('dashboard_patient');
+        return back()->withErrors([
+            'email' => 'Identifiants incorrects.',
+        ])->onlyInput('email');
     }
-
-    // 3. Si ça échoue, on revient en arrière avec une erreur
-    return back()->withErrors([
-        'email' => 'Les identifiants ne correspondent pas à nos enregistrements.',
-    ])->onlyInput('email');
-} }
+}

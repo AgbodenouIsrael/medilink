@@ -80,6 +80,8 @@
         .btn-action:hover {
             background-color: #388E3C;
         }
+        .error-msg { color: #dc3545; font-size: 0.85em; margin-top: 4px; display: block; }
+        .input-error { border-color: #dc3545 !important; }
     </style>
 </head>
 <body class="dashboard-body medecin-theme">
@@ -102,12 +104,27 @@
         </header>
 
         <div class="search-patient-bar">
-            <form>
+            <form action="{{ url()->current() }}" method="GET" novalidate>
+                @csrf
                 <div class="input-group">
-                    <input type="text" placeholder="Rechercher par Nom, Prénom ou ID Patient..." required>
+                    <input type="text" name="q" placeholder="Rechercher par Nom, Prénom ou ID Patient..." value="{{ old('q') }}" required>
+                    @error('q') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                 <button type="submit" class="btn primary-btn" style="background-color: var(--color-medecin);"><i class="fas fa-search"></i> Filtrer</button>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                    const form = document.querySelector('.search-patient-bar form'); if(!form) return;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    form.addEventListener('submit', function(e){
+                        form.querySelectorAll('.input-error').forEach(el=>el.classList.remove('input-error'));
+                        let invalid=false;
+                        form.querySelectorAll('[required]').forEach(function(el){ if(!el.value || !el.value.toString().trim()){ invalid=true; el.classList.add('input-error'); }});
+                        if(invalid){ e.preventDefault(); const first = form.querySelector('.input-error'); if(first) first.focus(); return; }
+                        if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.orig = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; }
+                    });
+                });
+            </script>
         </div>
 
         <table class="patients-table">

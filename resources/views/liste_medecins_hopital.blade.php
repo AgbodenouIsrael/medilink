@@ -87,6 +87,8 @@
             margin-bottom: 20px;
             display: inline-block;
         }
+        .error-msg { color: #dc3545; font-size: 0.85em; margin-top: 4px; display: block; }
+        .input-error { border-color: #dc3545 !important; }
     </style>
 </head>
 <body class="dashboard-body hopital-theme">
@@ -110,20 +112,36 @@
         <a href="#" class="btn primary-btn btn-add-medecin"><i class="fas fa-plus"></i> Affilier un Nouveau Médecin</a>
 
         <div class="search-medecin-bar">
-            <form>
+            <form action="{{ url()->current() }}" method="GET" novalidate>
+                @csrf
                 <div class="input-group">
-                    <input type="text" placeholder="Rechercher par Nom, Prénom ou ID Médecin..." required>
+                    <input type="text" name="q" placeholder="Rechercher par Nom, Prénom ou ID Médecin..." value="{{ old('q') }}" required>
+                    @error('q') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                  <div class="input-group">
-                    <select>
+                    <select name="specialite">
                         <option value="">Filtrer par Spécialité</option>
-                        <option value="cardiologie">Cardiologie</option>
-                        <option value="pediatrie">Pédiatrie</option>
-                        <option value="chirurgie">Chirurgie</option>
+                        <option value="cardiologie" {{ old('specialite')=='cardiologie' ? 'selected' : '' }}>Cardiologie</option>
+                        <option value="pediatrie" {{ old('specialite')=='pediatrie' ? 'selected' : '' }}>Pédiatrie</option>
+                        <option value="chirurgie" {{ old('specialite')=='chirurgie' ? 'selected' : '' }}>Chirurgie</option>
                     </select>
+                    @error('specialite') <span class="error-msg">{{ $message }}</span> @enderror
                 </div>
                 <button type="submit" class="btn primary-btn" style="background-color: var(--color-hopital);"><i class="fas fa-filter"></i> Filtrer</button>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                    const form = document.querySelector('.search-medecin-bar form'); if(!form) return;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    form.addEventListener('submit', function(e){
+                        form.querySelectorAll('.input-error').forEach(el=>el.classList.remove('input-error'));
+                        let invalid=false;
+                        form.querySelectorAll('[required]').forEach(function(el){ if(!el.value || !el.value.toString().trim()){ invalid=true; el.classList.add('input-error'); }});
+                        if(invalid){ e.preventDefault(); const first = form.querySelector('.input-error'); if(first) first.focus(); return; }
+                        if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.orig = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; }
+                    });
+                });
+            </script>
         </div>
 
         <table class="medecins-table">

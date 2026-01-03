@@ -23,6 +23,8 @@
             padding: 10px 15px;
             /* Le reste du style est hérité de style.css */
         }
+        .error-msg { color: #dc3545; font-size: 0.85em; margin-top: 4px; display: block; }
+        .input-error { border-color: #dc3545 !important; }
     </style>
 </head>
 <body>
@@ -33,28 +35,46 @@
 
         <main class="card">
             <h2 class="form-title"><i class="fas fa-user-md"></i> Créer un Compte Médecin</h2>
-            
-            <form action="{{ route('dashboard_medecin') }}" method="POST" enctype="multipart/form-data">
+
+            @if(session('success'))
+                <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;display:flex;gap:8px;align-items:center;">
+                    <i class="fas fa-check-circle"></i>
+                    <div>{{ session('success') }}</div>
+                </div>
+            @endif
+            @if(session('error'))
+                <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:6px;margin-bottom:15px;display:flex;gap:8px;align-items:center;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>{{ session('error') }}</div>
+                </div>
+            @endif
+
+            <form action="{{ route('dashboard_medecin') }}" method="POST" enctype="multipart/form-data" novalidate>
+                @csrf
                 
                 <div style="display: flex; gap: 20px;">
                     <div class="input-group" style="flex: 1;">
                         <label for="nom_m"><i class="fas fa-user"></i> Nom</label>
-                        <input type="text" id="nom_m" name="nom" placeholder="Votre nom" required>
+                        <input type="text" id="nom_m" name="nom" placeholder="Votre nom" value="{{ old('nom') }}" required>
+                        @error('nom') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                     <div class="input-group" style="flex: 1;">
                         <label for="prenom_m"><i class="fas fa-user"></i> Prénom</label>
-                        <input type="text" id="prenom_m" name="prenom" placeholder="Votre prénom" required>
+                        <input type="text" id="prenom_m" name="prenom" placeholder="Votre prénom" value="{{ old('prenom') }}" required>
+                        @error('prenom') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 20px;">
                     <div class="input-group" style="flex: 1;">
                         <label for="contact_m"><i class="fas fa-phone"></i> Contact</label>
-                        <input type="tel" id="contact_m" name="contact" placeholder="+33 6 12 34 56 78" required>
+                        <input type="tel" id="contact_m" name="contact" placeholder="+33 6 12 34 56 78" value="{{ old('contact') }}" required>
+                        @error('contact') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                     <div class="input-group" style="flex: 1;">
                         <label for="email_m"><i class="fas fa-envelope"></i> Email Professionnel</label>
-                        <input type="email" id="email_m" name="email" placeholder="pro@medilink.com" required>
+                        <input type="email" id="email_m" name="email" placeholder="pro@medilink.com" value="{{ old('email') }}" required>
+                        @error('email') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 
@@ -63,24 +83,46 @@
                         <label for="specialite_id"><i class="fas fa-stethoscope"></i> Spécialité</label>
                         <select id="specialite_id" name="specialite_id" required>
                             <option value="">Sélectionner votre spécialité</option>
-                            <option value="pediatrie">Pédiatrie</option>
-                            <option value="cardiologie">Cardiologie</option>
-                            <option value="dermatologie">Dermatologie</option>
+                            <option value="pediatrie" {{ old('specialite_id')=='pediatrie' ? 'selected' : '' }}>Pédiatrie</option>
+                            <option value="cardiologie" {{ old('specialite_id')=='cardiologie' ? 'selected' : '' }}>Cardiologie</option>
+                            <option value="dermatologie" {{ old('specialite_id')=='dermatologie' ? 'selected' : '' }}>Dermatologie</option>
                             </select>
+                        @error('specialite_id') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                     <div class="input-group" style="flex: 1;">
-                        <label for="mot_de_passe_m"><i class="fas fa-lock"></i> Mot de Passe</label>
-                        <input type="password" id="mot_de_passe_m" name="mot_de_passe" required>
+                        <label for="password"><i class="fas fa-lock"></i> Mot de Passe</label>
+                        <input type="password" id="password" name="password" required>
+                        @error('password') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label for="certificat"><i class="fas fa-file-pdf"></i> Certificat d'Exercice (PDF/Image)</label>
                     <input type="file" id="certificat" name="certificat" accept=".pdf, .jpg, .png" required>
+                    @error('certificat') <span class="error-msg">{{ $message }}</span> @enderror
                     <small>Ce fichier sera vérifié pour valider votre compte.</small>
                 </div>
                 
                 <button type="submit" class="btn primary-btn" style="background-color: var(--color-medecin);">S'inscrire comme Médecin</button>
+            </form>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                    const form = document.querySelector('form[method="POST"]'); if(!form) return;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    form.addEventListener('submit', function(e){
+                        form.querySelectorAll('.input-error').forEach(el=>el.classList.remove('input-error'));
+                        let invalid=false;
+                        form.querySelectorAll('[required]').forEach(function(el){
+                            if(el.type==='file'){ if(!el.files || el.files.length===0){ invalid=true; el.classList.add('input-error'); }}
+                            else if(el.type==='checkbox'){ if(!el.checked){ invalid=true; el.classList.add('input-error'); }}
+                            else { if(!el.value || !el.value.toString().trim()){ invalid=true; el.classList.add('input-error'); }}
+                        });
+                        if(invalid){ e.preventDefault(); const first = form.querySelector('.input-error'); if(first) first.focus(); return; }
+                        if(submitBtn){ submitBtn.disabled=true; submitBtn.dataset.orig = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...'; }
+                    });
+                });
+            </script>
             </form>
 
             <p style="text-align: center; margin-top: 20px; font-size: 0.9em;">
