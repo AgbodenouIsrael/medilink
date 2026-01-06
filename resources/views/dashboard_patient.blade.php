@@ -18,13 +18,25 @@
             <a href="{{ route('mes_messages') }}" class="nav-item"><i class="fas fa-comments"></i> Mes Messages</a>
             <a href="{{ route('guide_hopitaux') }}" class="nav-item"><i class="fas fa-hospital-alt"></i> Guide des Hôpitaux</a>
             <a href="{{ route('profil') }}" class="nav-item profile-link"><i class="fas fa-user-circle"></i> Mon Profil</a>
-            <a href="{{ route('connexion') }}" class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+            <a href="{{ route('logout.patient') }}" class="nav-item logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+    <i class="fas fa-sign-out-alt"></i> Déconnexion
+</a>
+
+<form id="logout-form" action="{{ route('logout.patient') }}" method="POST" style="display: none;">
+    @csrf
+</form>
         </nav>
     </div>
 
     <div class="main-content">
         <header class="dashboard-header">
-            <h2>Bienvenue, {{ Auth::user()->prenom }} {{ Auth::user()->nom }}</h2>
+            <h2>
+    @if(Auth::guard('patient')->check())
+        Bienvenue, {{ Auth::guard('patient')->user()->prenom }} {{ Auth::guard('patient')->user()->nom }}
+    @else
+        Bienvenue, Patient (Non connecté)
+    @endif
+</h2>
         </header>
 
         @if (session('success'))

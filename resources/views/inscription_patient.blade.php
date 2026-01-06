@@ -97,10 +97,17 @@
                         <input type="text" id="adresse" name="adresse" placeholder="12 Rue de la Santé" value="{{ old('adresse') }}" required>
                         @error('adresse') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label for="zone"><i class="fas fa-globe"></i> Ville/Zone</label>
-                        <input type="text" id="zone" name="zone" placeholder="Paris, Lomé, etc." value="{{ old('zone') }}" required>
-                        @error('zone') <span class="error-msg">{{ $message }}</span> @enderror
+                   <div class="input-group" style="flex: 1;">
+                        <label for="zone_id"><i class="fas fa-globe"></i> Zone</label>
+                        <select id="zone_id" name="zone_id" required>
+                            <option value="">Sélectionnez votre zone</option>
+                            @foreach(\App\Models\Zone::orderBy('ville')->orderBy('nom')->get() as $zone)
+                                <option value="{{ $zone->id }}" {{ old('zone_id') == $zone->id ? 'selected' : '' }}>
+                                    {{ $zone->nom }} ({{ $zone->ville }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('zone_id') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
