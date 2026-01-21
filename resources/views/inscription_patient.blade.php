@@ -81,7 +81,7 @@
                 <div style="display: flex; gap: 20px;">
                     <div class="input-group" style="flex: 1;">
                         <label for="contact"><i class="fas fa-phone"></i> Contact</label>
-                        <input type="tel" id="contact" name="contact" placeholder="+33 6 12 34 56 78" value="{{ old('contact') }}" required>
+                        <input type="tel" id="contact" name="contact" placeholder="+228 99 99 99 99" value="{{ old('contact') }}" required>
                         @error('contact') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
                     <div class="input-group" style="flex: 1;">

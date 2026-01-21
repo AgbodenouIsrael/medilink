@@ -7,8 +7,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withProviders()
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -19,8 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.hopital' => \App\Http\Middleware\CheckHopital::class,
             'auth.pharmacie' => \App\Http\Middleware\CheckPharmacie::class,
             'auth.admin' => \App\Http\Middleware\CheckAdmin::class,
+            'medical.auth' => \App\Http\Middleware\CheckMedicalAuthorization::class,
         ]);
-        
+
         // PAS de $middleware->web() ou $middleware->group() 
         // Laravel 12 gère ça automatiquement
     })

@@ -14,24 +14,33 @@ use Illuminate\Support\Facades\Storage;
 
 class DossierMedicalController extends Controller
 {
-    // Afficher le dossier médical complet
-    public function index()
-    {
-        // Récupérer toutes les données du patient
-        $antecedents = $patient->antecedents ?? collect();
-        $allergies = $patient->allergies ?? collect();
-        $ordonnances = $patient->ordonnances()->orderBy('date_prescription', 'desc')->get() ?? collect();
-        $documents = $patient->documents ?? collect();
-        
-        // Pour diagnostiques et traitements (si vous avez ces modèles)
-        $diagnostiques = method_exists($patient, 'diagnostiques') ? $patient->diagnostiques : collect();
-        $traitements = method_exists($patient, 'traitements') ? $patient->traitements : collect();
-        
-        return view('ma_fiche_medicale', compact(
-            'antecedents', 'allergies', 'ordonnances', 
-            'diagnostiques', 'traitements', 'documents'
-        ));
+   // Afficher le dossier médical complet
+public function index()
+{
+    // Récupérer le patient connecté
+    $patient = Auth::guard('patient')->user();
+    
+    // Vérifier si le patient est connecté
+    if (!$patient) {
+        return redirect()->route('connexion')->with('error', 'Veuillez vous connecter.');
     }
+    
+    // Récupérer toutes les données du patient
+    $antecedents = $patient->antecedents ?? collect();
+    $allergies = $patient->allergies ?? collect();
+    $ordonnances = $patient->ordonnances()->orderBy('date_prescription', 'desc')->get() ?? collect();
+    $documents = $patient->documents ?? collect();
+    
+    // Pour diagnostiques et traitements (si vous avez ces modèles)
+    $diagnostiques = method_exists($patient, 'diagnostiques') ? $patient->diagnostiques : collect();
+    $traitements = method_exists($patient, 'traitements') ? $patient->traitements : collect();
+    
+    return view('ma_fiche_medicale', compact(
+        'patient', // N'oubliez pas d'envoyer $patient à la vue aussi
+        'antecedents', 'allergies', 'ordonnances', 
+        'diagnostiques', 'traitements', 'documents'
+    ));
+}
     
     // CRUD pour Antécédents
     public function storeAntecedent(Request $request)

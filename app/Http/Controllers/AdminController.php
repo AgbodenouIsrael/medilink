@@ -3,63 +3,162 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\Medecin;
+use App\Models\Hopital;
+use App\Models\Pharmacie;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AccountApproved;
 
 class AdminController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Login View
+    public function showLoginForm()
+    {
+        return view('auth.admin_login');
+    }
+
+    // Login Logic
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::guard('admin')->attempt($request->only('email', 'password'))) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return back()->withErrors([
+            'email' => 'Les identifiants ne correspondent pas.',
+        ]);
+    }
+
+    // Logout
+    public function logout()
+    {
+        Auth::guard('admin')->logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        return redirect()->route('admin.login');
+    }
+
+    // Dashboard Stats
     public function index()
     {
-        //
+        $stats = [
+            'medecins' => Medecin::count(),
+            'patients' => \App\Models\Patient::count(),
+            'hopitaux' => Hopital::count(),
+            'pending' => Medecin::where('statut', 'en_attente')->count() + Hopital::where('statut', 'en_attente')->count(),
+            'latest_medecin' => Medecin::latest()->first(),
+        ];
+
+        // Fetch latest 5 from each category
+        $medecins = Medecin::latest()->take(5)->get()->map(function ($item) {
+            $item->type = 'Médecin';
+            $item->icon = 'fas fa-user-md';
+            $item->description = 'Nouveau Médecin inscrit : ' . $item->prenom . ' ' . $item->nom . ' (' . $item->specialite . ')';
+            return $item;
+        });
+
+        $hopitaux = Hopital::latest()->take(5)->get()->map(function ($item) {
+            $item->type = 'Hôpital';
+            $item->icon = 'fas fa-hospital-alt';
+            $item->description = 'Nouvel Hôpital inscrit : ' . $item->nom;
+            return $item;
+        });
+
+        // Uncomment when Pharmacie model is fully ready and imported
+        // $pharmacies = Pharmacie::latest()->take(5)->get()->map(function ($item) {
+        //     $item->type = 'Pharmacie';
+        //     $item->icon = 'fas fa-pills';
+        //     $item->description = 'Nouvelle Pharmacie inscrite : ' . $item->nom;
+        //     return $item;
+        // });
+
+        $patients = \App\Models\Patient::latest()->take(5)->get()->map(function ($item) {
+            $item->type = 'Patient';
+            $item->icon = 'fas fa-user-injured';
+            $item->description = 'Nouveau Patient inscrit : ' . $item->prenom . ' ' . $item->nom;
+            return $item;
+        });
+
+        // Merge and sort
+        $activities = $medecins->concat($hopitaux)->concat($patients);
+        // $activities = $medecins->concat($hopitaux)->concat($pharmacies)->concat($patients);
+
+        $activities = $activities->sortByDesc('created_at')->take(10);
+
+        return view('dashboard_admin', compact('stats', 'activities'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // List Pending Validations
+    public function validations()
     {
-        //
+        $pendingMedecins = Medecin::where('statut', 'en_attente')->get();
+        $pendingHopitaux = Hopital::where('statut', 'en_attente')->get();
+        // $pendingPharmacies = Pharmacie::where('statut', 'en_attente')->get(); // Future
+
+        return view('admin_validation', compact('pendingMedecins', 'pendingHopitaux'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // Approve Entity
+    public function approve(Request $request)
     {
-        //
+        $request->validate([
+            'type' => 'required|in:medecin,hopital,pharmacie',
+            'id' => 'required|integer'
+        ]);
+
+        if ($request->type === 'medecin') {
+            $entity = Medecin::findOrFail($request->id);
+            $entity->update(['statut' => 'actif']);
+            try {
+                Mail::to($entity->email)->send(new AccountApproved($entity));
+            } catch (\Exception $e) {
+                return back()->with('warning', 'Compte medecin activé, mais échec de l\'envoi du mail: ' . $e->getMessage());
+            }
+        } elseif ($request->type === 'hopital') {
+            $entity = Hopital::findOrFail($request->id);
+            $entity->update(['statut' => 'verifie']);
+            try {
+                Mail::to($entity->email)->send(new AccountApproved($entity));
+            } catch (\Exception $e) {
+                return back()->with('warning', 'Compte hôpital validé, mais échec de l\'envoi du mail: ' . $e->getMessage());
+            }
+        }
+
+        return back()->with('success', 'Compte validé avec succès.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Admin $admin)
+    // Reject (Delete) Entity
+    public function reject(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'type' => 'required|in:medecin,hopital,pharmacie',
+            'id' => 'required|integer',
+            'reason' => 'nullable|string'
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Admin $admin)
-    {
-        //
-    }
+        if ($request->type === 'medecin') {
+            $entity = Medecin::findOrFail($request->id);
+            // Delete uploaded certificate
+            if ($entity->certificat_path) {
+                Storage::disk('public')->delete($entity->certificat_path);
+            }
+            $entity->delete(); // Hard delete for cleanup as requested
+        } elseif ($request->type === 'hopital') {
+            $entity = Hopital::findOrFail($request->id);
+            if ($entity->fichier_enregistrement_path) {
+                Storage::disk('public')->delete($entity->fichier_enregistrement_path);
+            }
+            $entity->delete();
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Admin $admin)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Admin $admin)
-    {
-        //
+        return back()->with('success', 'Compte rejeté et données supprimées.');
     }
 }

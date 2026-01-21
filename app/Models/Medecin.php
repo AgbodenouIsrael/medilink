@@ -12,17 +12,49 @@ class Medecin extends Authenticatable
     use Notifiable;
 
     protected $fillable = [
-        'nom', 'prenom', 'email', 'password', 'contact',
-        'specialite_id', 'numero_licence', 'certificat_path',
-        'statut', 'zone_couverture'
+        'nom',
+        'prenom',
+        'email',
+        'password',
+        'contact',
+        'specialite_id',
+        'numero_licence',
+        'certificat_path',
+        'statut',
+        'zone_couverture'
     ];
 
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function autorisations()
+    {
+        return $this->hasMany(Autorisation::class);
+    }
+
+    public function patients_autorises()
+    {
+        return $this->belongsToMany(Patient::class, 'autorisations')
+            ->wherePivot('statut', 'approuve')
+            ->withPivot('type_acces', 'date_fin');
+    }
+
+    public function hopitals()
+    {
+        return $this->belongsToMany(Hopital::class, 'hopital_medecins')
+            ->withPivot('role', 'horaires', 'statut')
+            ->withTimestamps();
+    }
+
+    public function specialite()
+    {
+        return $this->belongsTo(Specialite::class);
+    }
 }

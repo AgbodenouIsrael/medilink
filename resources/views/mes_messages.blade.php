@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Messages - Medilink</title>
-    <link rel="stylesheet" href="{{ asset('assets/style.css' ) }} ">
-    <link rel="stylesheet" href="{{ asset('assets/dashboard.css' ) }}">
+    <link rel="stylesheet" href="{{ asset('assets/style.css') }} ">
+    <link rel="stylesheet" href="{{ asset('assets/dashboard.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Styles spécifiques pour le Chat */
         .chat-container {
             display: flex;
             background-color: var(--color-card-background);
-            height: calc(100vh - 150px); /* Ajuster la hauteur de la fenêtre de chat */
+            height: calc(100vh - 150px);
+            /* Ajuster la hauteur de la fenêtre de chat */
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             overflow: hidden;
@@ -24,7 +26,7 @@
             border-right: 1px solid var(--color-border);
             overflow-y: auto;
         }
-        
+
         .conversation-item {
             display: flex;
             align-items: center;
@@ -33,13 +35,14 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        
+
         .conversation-item:hover {
             background-color: #f7f7f7;
         }
 
         .conversation-item.active {
-            background-color: #eaf1f7; /* Bleu très clair */
+            background-color: #eaf1f7;
+            /* Bleu très clair */
             border-left: 3px solid var(--color-patient);
         }
 
@@ -56,7 +59,7 @@
             color: white;
             flex-shrink: 0;
         }
-        
+
         .conv-info strong {
             display: block;
             font-size: 1em;
@@ -88,7 +91,8 @@
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
-            background-color: var(--color-background); /* Léger fond pour le corps du chat */
+            background-color: var(--color-background);
+            /* Léger fond pour le corps du chat */
         }
 
         .message-bubble {
@@ -121,10 +125,12 @@
             font-size: 0.7em;
             margin-top: 5px;
             text-align: right;
-            color: rgba(255, 255, 255, 0.7); /* Clair pour le fond bleu */
+            color: rgba(255, 255, 255, 0.7);
+            /* Clair pour le fond bleu */
         }
+
         .message-medecin .message-time {
-             color: #777;
+            color: #777;
         }
 
         /* Formulaire d'Envoi */
@@ -153,17 +159,24 @@
         }
     </style>
 </head>
+
 <body class="dashboard-body patient-theme">
     <div class="sidebar">
         <h1 class="logo"><i class="fas fa-heartbeat"></i> MediLink</h1>
         <nav class="nav-menu">
-            <a href="{{ route('dashboard_patient') }}" class="nav-item"><i class="fas fa-columns"></i> Tableau de Bord</a>
-            <a href="{{ route('ma_fiche_medicale') }}" class="nav-item"><i class="fas fa-file-medical"></i> Dossier Médical</a>
-            <a href="{{ route('trouver_pharmacie') }}" class="nav-item"><i class="fas fa-prescription-bottle-alt"></i> Pharmacies</a>
+            <a href="{{ route('dashboard_patient') }}" class="nav-item"><i class="fas fa-columns"></i> Tableau de
+                Bord</a>
+            <a href="{{ route('ma_fiche_medicale') }}" class="nav-item"><i class="fas fa-file-medical"></i> Dossier
+                Médical</a>
+            <a href="{{ route('trouver_pharmacie') }}" class="nav-item"><i class="fas fa-prescription-bottle-alt"></i>
+                Pharmacies</a>
             <a href="#" class="nav-item active"><i class="fas fa-comments"></i> Mes Messages</a>
-            <a href="{{ route('guide_hopitaux') }}" class="nav-item"><i class="fas fa-hospital-alt"></i> Guide des Hôpitaux</a>
-            <a href="{{ route('profil_patient') }}" class="nav-item profile-link"><i class="fas fa-user-circle"></i> Mon Profil</a>
-            <a href="{{ route('connexion') }}" class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+            <a href="{{ route('guide_hopitaux') }}" class="nav-item"><i class="fas fa-hospital-alt"></i> Guide des
+                Hôpitaux</a>
+            <a href="{{ route('profil') }}" class="nav-item profile-link"><i class="fas fa-user-circle"></i> Mon
+                Profil</a>
+            <a href="{{ route('connexion') }}" class="nav-item logout"><i class="fas fa-sign-out-alt"></i>
+                Déconnexion</a>
         </nav>
     </div>
 
@@ -174,58 +187,61 @@
 
         <div class="chat-container">
             <div class="conversation-list">
-                <div class="conversation-item active">
-                    <div class="avatar" style="background-color: var(--color-medecin);"><i class="fas fa-user-md"></i></div>
-                    <div class="conv-info">
-                        <strong>Dr. Martin Dubois</strong>
-                        <small>Bonjour, concernant vos analyses...</small>
+                @forelse($chats as $c)
+                    <div class="conversation-item {{ isset($chat) && $chat->id == $c->id ? 'active' : '' }}"
+                        onclick="window.location='{{ route('mes_messages.show', $c->id) }}'">
+                        <div class="avatar" style="background-color: var(--color-medecin);"><i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="conv-info">
+                            <strong>{{ $c->medecin->prenom }} {{ $c->medecin->nom }}</strong>
+                            <small>{{ $c->messages->last() ? Str::limit($c->messages->last()->contenu, 30) : 'Aucun message' }}</small>
+                        </div>
                     </div>
-                </div>
-                <div class="conversation-item">
-                    <div class="avatar" style="background-color: #f44336;"><i class="fas fa-user-md"></i></div>
-                    <div class="conv-info">
-                        <strong>Dr. Sophie Leloup</strong>
-                        <small>Merci pour l'ordonnance...</small>
-                    </div>
-                </div>
-                <div class="conversation-item">
-                    <div class="avatar" style="background-color: #9E9E9E;"><i class="fas fa-hospital"></i></div>
-                    <div class="conv-info">
-                        <strong>Hôpital Central</strong>
-                        <small>Votre RDV est confirmé le 15/01.</small>
-                    </div>
-                </div>
+                @empty
+                    <div class="p-4 text-gray-500">Aucune conversation active.</div>
+                @endforelse
             </div>
 
             <div class="chat-window">
-                <div class="chat-header">
-                    <h4>Discussion avec **Dr. Martin Dubois** (Généraliste)</h4>
-                </div>
-
-                <div class="messages">
-                    <div class="message-bubble message-medecin">
-                        Bonjour, j'ai bien reçu vos résultats d'analyses. Ils sont normaux. Comment vous sentez-vous ?
-                        <span class="message-time">10:30</span>
+                @if(isset($chat))
+                    <div class="chat-header">
+                        <h4>Discussion avec **Dr. {{ $chat->medecin->prenom }} {{ $chat->medecin->nom }}**</h4>
                     </div>
 
-                    <div class="message-bubble message-patient">
-                        Bonjour Docteur, je me sens beaucoup mieux, merci. J'ai juste une petite douleur à la tête parfois.
-                        <span class="message-time">10:32</span>
-                    </div>
-                    
-                    <div class="message-bubble message-medecin">
-                        D'accord. Pouvez-vous me donner plus de détails sur cette douleur ? Est-elle constante ?
-                        <span class="message-time">10:35</span>
+                    <div class="messages" id="messages-container">
+                        @foreach($chat->messages as $msg)
+                            @php
+                                $isMe = ($msg->expediteur_type === get_class($user) && $msg->expediteur_id === $user->id);
+                            @endphp
+                            <div class="message-bubble {{ $isMe ? 'message-patient' : 'message-medecin' }}">
+                                {{ $msg->contenu }}
+                                <span class="message-time">{{ $msg->created_at->format('H:i') }}</span>
+                            </div>
+                        @endforeach
                     </div>
 
-                </div>
-
-                <div class="chat-input">
-                    <input type="text" placeholder="Écrivez votre message ici...">
-                    <button type="submit"><i class="fas fa-paper-plane"></i></button>
-                </div>
+                    <div class="chat-input">
+                        <form action="{{ route('patient.messages.store', $chat->id) }}" method="POST"
+                            style="display:flex; width:100%; gap:10px;">
+                            @csrf
+                            <input type="text" name="contenu" placeholder="Écrivez votre message ici..." required
+                                autocomplete="off">
+                            <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                        </form>
+                    </div>
+                @else
+                    <div class="flex items-center justify-center h-full text-gray-500">
+                        Sélectionnez une conversation.
+                    </div>
+                @endif
             </div>
         </div>
+        <script>
+            // Scroll to bottom
+            const container = document.getElementById('messages-container');
+            if (container) container.scrollTop = container.scrollHeight;
+        </script>
     </div>
 </body>
+
 </html>

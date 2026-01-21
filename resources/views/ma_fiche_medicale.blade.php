@@ -352,46 +352,6 @@
         </section>
     </div>
 
-    <!-- Modals (gardez vos modals existants) -->
-    <!-- ... vos modals existants ... -->
-
-    <script>
-        // Fonctions pour gérer les modals
-        function openModal(type) {
-            document.getElementById('modal' + type.charAt(0).toUpperCase() + type.slice(1)).style.display = 'block';
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-        
-        function editAntecedent(id) {
-            // Ici vous ajouteriez la logique pour pré-remplir le formulaire d'édition
-            // Pour l'instant, on ouvre le modal d'ajout
-            openModal('antecedent');
-            // Vous devrez ajouter une requête AJAX pour récupérer les données
-        }
-        
-        // Modal pour le profil
-        const editModal = document.getElementById("editModal");
-        const openProfileBtn = document.getElementById("openModal");
-        const closeProfileBtn = document.getElementById("closeModal");
-        
-        if (openProfileBtn) {
-            openProfileBtn.onclick = () => editModal.style.display = "block";
-        }
-        
-        if (closeProfileBtn) {
-            closeProfileBtn.onclick = () => editModal.style.display = "none";
-        }
-        
-        // Fermer les modals en cliquant à l'extérieur
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        }
-    </script>
 
         <!-- Modal pour Antécédents -->
     <div id="modalAntecedent" class="modal">
@@ -545,6 +505,44 @@
     </div>
 
     <script>
+
+        // Fonctions pour gérer les modals
+        function openModal(type) {
+            document.getElementById('modal' + type.charAt(0).toUpperCase() + type.slice(1)).style.display = 'block';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function editAntecedent(id) {
+            // Ici vous ajouteriez la logique pour pré-remplir le formulaire d'édition
+            // Pour l'instant, on ouvre le modal d'ajout
+            openModal('antecedent');
+            // Vous devrez ajouter une requête AJAX pour récupérer les données
+        }
+        
+        // Modal pour le profil
+        const editModal = document.getElementById("editModal");
+        const openProfileBtn = document.getElementById("openModal");
+        const closeProfileBtn = document.getElementById("closeModal");
+        
+        if (openProfileBtn) {
+            openProfileBtn.onclick = () => editModal.style.display = "block";
+        }
+        
+        if (closeProfileBtn) {
+            closeProfileBtn.onclick = () => editModal.style.display = "none";
+        }
+        
+        // Fermer les modals en cliquant à l'extérieur
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    
+
         // Fonctions pour gérer les modals
         function openModal(type) {
             const modalId = 'modal' + type.charAt(0).toUpperCase() + type.slice(1);

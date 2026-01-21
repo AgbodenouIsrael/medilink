@@ -12,7 +12,7 @@ class CheckAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::guard('admin')->check()) {
-            return redirect()->route('connexion')->with('error', 'Accès réservé aux administrateurs.');
+            return redirect()->route('admin.login')->with('error', 'Accès réservé aux administrateurs.');
         }
         return $next($request);
     }
