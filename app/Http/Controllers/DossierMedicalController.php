@@ -14,34 +14,38 @@ use Illuminate\Support\Facades\Storage;
 
 class DossierMedicalController extends Controller
 {
-   // Afficher le dossier médical complet
-public function index()
-{
-    // Récupérer le patient connecté
-    $patient = Auth::guard('patient')->user();
-    
-    // Vérifier si le patient est connecté
-    if (!$patient) {
-        return redirect()->route('connexion')->with('error', 'Veuillez vous connecter.');
+    // Afficher le dossier médical complet
+    public function index()
+    {
+        // Récupérer le patient connecté
+        $patient = Auth::guard('patient')->user();
+
+        // Vérifier si le patient est connecté
+        if (!$patient) {
+            return redirect()->route('connexion')->with('error', 'Veuillez vous connecter.');
+        }
+
+        // Récupérer toutes les données du patient
+        $antecedents = $patient->antecedents ?? collect();
+        $allergies = $patient->allergies ?? collect();
+        $ordonnances = $patient->ordonnances()->orderBy('date_prescription', 'desc')->get() ?? collect();
+        $documents = $patient->documents ?? collect();
+
+        // Pour diagnostiques et traitements (si vous avez ces modèles)
+        $diagnostiques = method_exists($patient, 'diagnostiques') ? $patient->diagnostiques : collect();
+        $traitements = method_exists($patient, 'traitements') ? $patient->traitements : collect();
+
+        return view('patient.medical_record', compact(
+            'patient', // N'oubliez pas d'envoyer $patient à la vue aussi
+            'antecedents',
+            'allergies',
+            'ordonnances',
+            'diagnostiques',
+            'traitements',
+            'documents'
+        ));
     }
-    
-    // Récupérer toutes les données du patient
-    $antecedents = $patient->antecedents ?? collect();
-    $allergies = $patient->allergies ?? collect();
-    $ordonnances = $patient->ordonnances()->orderBy('date_prescription', 'desc')->get() ?? collect();
-    $documents = $patient->documents ?? collect();
-    
-    // Pour diagnostiques et traitements (si vous avez ces modèles)
-    $diagnostiques = method_exists($patient, 'diagnostiques') ? $patient->diagnostiques : collect();
-    $traitements = method_exists($patient, 'traitements') ? $patient->traitements : collect();
-    
-    return view('ma_fiche_medicale', compact(
-        'patient', // N'oubliez pas d'envoyer $patient à la vue aussi
-        'antecedents', 'allergies', 'ordonnances', 
-        'diagnostiques', 'traitements', 'documents'
-    ));
-}
-    
+
     // CRUD pour Antécédents
     public function storeAntecedent(Request $request)
     {
@@ -52,19 +56,19 @@ public function index()
             'statut' => 'required|in:actif,gueri,en_suivi',
             'commentaires' => 'nullable|string|max:500',
         ]);
-        
+
         $antecedent = new Antecedent($request->all());
         $antecedent->patient_id = Auth::guard('patient')->id();
         $antecedent->save();
-        
+
         return back()->with('success', 'Antécédent ajouté avec succès.');
     }
-    
+
     public function updateAntecedent(Request $request, $id)
     {
         $antecedent = Antecedent::where('patient_id', Auth::guard('patient')->id())
             ->findOrFail($id);
-        
+
         $request->validate([
             'type' => 'required|in:familial,personnel,chirurgical,obstetrical,autres',
             'description' => 'required|string|max:1000',
@@ -72,21 +76,21 @@ public function index()
             'statut' => 'required|in:actif,gueri,en_suivi',
             'commentaires' => 'nullable|string|max:500',
         ]);
-        
+
         $antecedent->update($request->all());
-        
+
         return back()->with('success', 'Antécédent modifié avec succès.');
     }
-    
+
     public function destroyAntecedent($id)
     {
         $antecedent = Antecedent::where('patient_id', Auth::guard('patient')->id())
             ->findOrFail($id);
         $antecedent->delete();
-        
+
         return back()->with('success', 'Antécédent supprimé avec succès.');
     }
-    
+
     // CRUD pour Allergies
     public function storeAllergie(Request $request)
     {
@@ -98,23 +102,23 @@ public function index()
             'traitement' => 'nullable|string|max:500',
             'date_decouverte' => 'nullable|date',
         ]);
-        
+
         $allergie = new Allergie($request->all());
         $allergie->patient_id = Auth::guard('patient')->id();
         $allergie->save();
-        
+
         return back()->with('success', 'Allergie ajoutée avec succès.');
     }
-    
+
     public function destroyAllergie($id)
     {
         $allergie = Allergie::where('patient_id', Auth::guard('patient')->id())
             ->findOrFail($id);
         $allergie->delete();
-        
+
         return back()->with('success', 'Allergie supprimée avec succès.');
     }
-    
+
     // CRUD pour Documents
     public function storeDocument(Request $request)
     {
@@ -125,10 +129,10 @@ public function index()
             'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'description' => 'nullable|string|max:500',
         ]);
-        
+
         if ($request->hasFile('fichier')) {
             $path = $request->file('fichier')->store('documents_medicaux', 'public');
-            
+
             $document = new DocumentMedical();
             $document->patient_id = Auth::guard('patient')->id();
             $document->type_document = $request->type_document;
@@ -137,21 +141,21 @@ public function index()
             $document->chemin_fichier = $path;
             $document->description = $request->description;
             $document->save();
-            
+
             return back()->with('success', 'Document ajouté avec succès.');
         }
-        
+
         return back()->with('error', 'Erreur lors du téléchargement du fichier.');
     }
-    
+
     public function destroyDocument($id)
     {
         $document = DocumentMedical::where('patient_id', Auth::guard('patient')->id())
             ->findOrFail($id);
-        
+
         Storage::disk('public')->delete($document->chemin_fichier);
         $document->delete();
-        
+
         return back()->with('success', 'Document supprimé avec succès.');
     }
 }

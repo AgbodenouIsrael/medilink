@@ -23,7 +23,7 @@ class MedecinChatController extends Controller
             ->latest()
             ->get();
 
-        return view('messages_medecin', compact('chats', 'user'));
+        return view('medecin.messages.show', compact('chats', 'user'));
     }
 
     public function show($id)
@@ -37,7 +37,7 @@ class MedecinChatController extends Controller
 
         $chats = Chat::where('medecin_id', $user->id)->latest()->get();
 
-        return view('messages_medecin', compact('chat', 'chats', 'user'));
+        return view('medecin.messages.show', compact('chat', 'chats', 'user'));
     }
 
     public function store(Request $request, $id)

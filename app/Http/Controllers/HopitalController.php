@@ -15,7 +15,7 @@ class HopitalController extends Controller
     public function create()
     {
         $zones = Zone::all();
-        return view('inscription_hopitaux', compact('zones'));
+        return view('hopital.auth.register', compact('zones'));
     }
 
     public function store(Request $request)
@@ -28,6 +28,7 @@ class HopitalController extends Controller
             'zone_id' => 'required|exists:zones,id',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'fichier_enregistrement_path' => 'required|file|mimes:pdf,jpg,png|max:5120',
+            'privacy_policy' => 'accepted',
         ]);
 
         $path = $request->file('fichier_enregistrement_path')->store('hopitaux_docs', 'public');
@@ -51,7 +52,7 @@ class HopitalController extends Controller
     // Page en attente
     public function pending()
     {
-        return view('hopital_pending');
+        return view('hopital.status.pending');
     }
 
     // Dashboard
@@ -66,7 +67,7 @@ class HopitalController extends Controller
         $medecinsCount = $hopital->medecins()->count();
         $patientsCount = $hopital->patients()->count();
 
-        return view('dashboard_hopital', compact('hopital', 'medecinsCount', 'patientsCount'));
+        return view('hopital.dashboard', compact('hopital', 'medecinsCount', 'patientsCount'));
     }
 
     // Liste des médecins affiliés
@@ -79,7 +80,7 @@ class HopitalController extends Controller
         $medecins = $hopital->medecins()->wherePivot('statut', 'actif')->get();
         $pending = $hopital->medecins()->wherePivot('statut', 'en_attente')->get();
 
-        return view('liste_medecins_hopital', compact('medecins', 'pending'));
+        return view('hopital.doctors.index', compact('medecins', 'pending'));
     }
 
     // Approuver un médecin
@@ -108,13 +109,13 @@ class HopitalController extends Controller
             return redirect()->route('hopital.pending');
 
         $patients = $hopital->patients; // Uses the relationship defined in model
-        return view('liste_patients_hopital', compact('patients'));
+        return view('hopital.patients.index', compact('patients'));
     }
 
     // Profil Hôpital
     public function profil()
     {
         $hopital = Auth::guard('hopital')->user();
-        return view('profil_hopital', compact('hopital'));
+        return view('hopital.profile', compact('hopital'));
     }
 }

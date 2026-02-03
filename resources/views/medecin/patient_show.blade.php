@@ -1,19 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.medecin')
 
-<!-- Assuming a layout exists, or I will create a standalone structure similar to other files -->
-<!DOCTYPE html>
-<html lang="fr">
+@section('title', 'Dossier Patient - ' . $patient->prenom . ' ' . $patient->nom)
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dossier Patient - {{ $patient->prenom }} {{ $patient->nom }}</title>
+@section('styles')
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
+@endsection
 
-<body class="bg-gray-100">
-
+@section('content')
     <div class="container mx-auto px-4 py-8">
         <a href="{{ route('mes_patients') }}" class="text-indigo-600 hover:text-indigo-800 mb-4 inline-block">
             <i class="fas fa-arrow-left"></i> Retour à mes patients
@@ -118,8 +112,7 @@
                                             <span class="text-sm text-gray-500">Dr. {{ $consult->medecin->nom }}
                                                 {{ $consult->medecin->prenom }}</span>
                                         </div>
-                                        <button class="text-gray-400 hover:text-indigo-600"><i
-                                                class="fas fa-print"></i></button>
+                                        <button class="text-gray-400 hover:text-indigo-600"><i class="fas fa-print"></i></button>
                                     </div>
                                     <div class="bg-gray-50 p-3 rounded mb-2">
                                         <p class="font-semibold text-gray-700">Diagnostic:</p>
@@ -141,7 +134,4 @@
             </div>
         </div>
     </div>
-
-</body>
-
-</html>
+@endsection

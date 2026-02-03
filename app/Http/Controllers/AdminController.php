@@ -17,7 +17,7 @@ class AdminController extends Controller
     // Login View
     public function showLoginForm()
     {
-        return view('auth.admin_login');
+        return view('admin.auth.login');
     }
 
     // Login Logic
@@ -47,13 +47,15 @@ class AdminController extends Controller
     }
 
     // Dashboard Stats
+    // Dashboard Stats
     public function index()
     {
         $stats = [
             'medecins' => Medecin::count(),
             'patients' => \App\Models\Patient::count(),
             'hopitaux' => Hopital::count(),
-            'pending' => Medecin::where('statut', 'en_attente')->count() + Hopital::where('statut', 'en_attente')->count(),
+            'pharmacies' => Pharmacie::count(),
+            'pending' => Medecin::where('statut', 'en_attente')->count() + Hopital::where('statut', 'en_attente')->count() + Pharmacie::where('statut', 'en_attente')->count(),
             'latest_medecin' => Medecin::latest()->first(),
         ];
 
@@ -72,13 +74,12 @@ class AdminController extends Controller
             return $item;
         });
 
-        // Uncomment when Pharmacie model is fully ready and imported
-        // $pharmacies = Pharmacie::latest()->take(5)->get()->map(function ($item) {
-        //     $item->type = 'Pharmacie';
-        //     $item->icon = 'fas fa-pills';
-        //     $item->description = 'Nouvelle Pharmacie inscrite : ' . $item->nom;
-        //     return $item;
-        // });
+        $pharmacies = Pharmacie::latest()->take(5)->get()->map(function ($item) {
+            $item->type = 'Pharmacie';
+            $item->icon = 'fas fa-pills';
+            $item->description = 'Nouvelle Pharmacie inscrite : ' . $item->nom_officine;
+            return $item;
+        });
 
         $patients = \App\Models\Patient::latest()->take(5)->get()->map(function ($item) {
             $item->type = 'Patient';
@@ -88,12 +89,13 @@ class AdminController extends Controller
         });
 
         // Merge and sort
-        $activities = $medecins->concat($hopitaux)->concat($patients);
-        // $activities = $medecins->concat($hopitaux)->concat($pharmacies)->concat($patients);
+        $activities = $medecins->concat($hopitaux)->concat($pharmacies)->concat($patients);
 
         $activities = $activities->sortByDesc('created_at')->take(10);
 
-        return view('dashboard_admin', compact('stats', 'activities'));
+        $pending_count = $stats['pending'];
+
+        return view('admin.dashboard', compact('stats', 'activities', 'pending_count'));
     }
 
     // List Pending Validations
@@ -101,9 +103,11 @@ class AdminController extends Controller
     {
         $pendingMedecins = Medecin::where('statut', 'en_attente')->get();
         $pendingHopitaux = Hopital::where('statut', 'en_attente')->get();
-        // $pendingPharmacies = Pharmacie::where('statut', 'en_attente')->get(); // Future
+        $pendingPharmacies = Pharmacie::where('statut', 'en_attente')->get();
 
-        return view('admin_validation', compact('pendingMedecins', 'pendingHopitaux'));
+        $pending_count = $pendingMedecins->count() + $pendingHopitaux->count() + $pendingPharmacies->count();
+
+        return view('admin.validation', compact('pendingMedecins', 'pendingHopitaux', 'pendingPharmacies', 'pending_count'));
     }
 
     // Approve Entity
@@ -130,6 +134,14 @@ class AdminController extends Controller
             } catch (\Exception $e) {
                 return back()->with('warning', 'Compte hôpital validé, mais échec de l\'envoi du mail: ' . $e->getMessage());
             }
+        } elseif ($request->type === 'pharmacie') {
+            $entity = Pharmacie::findOrFail($request->id);
+            $entity->update(['statut' => 'valide']);
+            try {
+                Mail::to($entity->email)->send(new AccountApproved($entity));
+            } catch (\Exception $e) {
+                return back()->with('warning', 'Compte pharmacie validé, mais échec de l\'envoi du mail: ' . $e->getMessage());
+            }
         }
 
         return back()->with('success', 'Compte validé avec succès.');
@@ -146,16 +158,18 @@ class AdminController extends Controller
 
         if ($request->type === 'medecin') {
             $entity = Medecin::findOrFail($request->id);
-            // Delete uploaded certificate
             if ($entity->certificat_path) {
                 Storage::disk('public')->delete($entity->certificat_path);
             }
-            $entity->delete(); // Hard delete for cleanup as requested
+            $entity->delete();
         } elseif ($request->type === 'hopital') {
             $entity = Hopital::findOrFail($request->id);
             if ($entity->fichier_enregistrement_path) {
                 Storage::disk('public')->delete($entity->fichier_enregistrement_path);
             }
+            $entity->delete();
+        } elseif ($request->type === 'pharmacie') {
+            $entity = Pharmacie::findOrFail($request->id);
             $entity->delete();
         }
 

@@ -14,7 +14,7 @@ class AutorisationController extends Controller
     {
         $patient = Auth::guard('patient')->user();
         $autorisations = $patient->autorisations()->with(['medecin', 'hopital'])->latest()->get();
-        return view('autorisations.index', compact('autorisations'));
+        return view('patient.authorizations.index', compact('autorisations'));
     }
 
     // Demande d'accès par un médecin ou un hôpital

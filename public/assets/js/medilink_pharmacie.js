@@ -1,5 +1,5 @@
 // Shared JS for Medilink Pharmacy pages
-(function() {
+(function () {
     // Utility: get current page filename
     function currentPage() {
         const p = location.pathname.split('/').pop();
@@ -52,7 +52,7 @@
             try {
                 const href = a.getAttribute('href') || '';
                 a.classList.toggle('active', href.endsWith(page));
-            } catch (e) {}
+            } catch (e) { }
         });
     }
 
@@ -65,21 +65,21 @@
 
         headerSearch.addEventListener('input', function (e) {
             const q = e.target.value.trim().toLowerCase();
-            if (page === 'pharmacie_inventory.html') {
+            if (page === 'pharmacie_inventory') {
                 document.querySelectorAll('.data-table tbody tr').forEach(tr => {
                     const name = (tr.querySelector('td strong') && tr.querySelector('td strong').innerText) || '';
                     const sku = (tr.querySelector('td small') && tr.querySelector('td small').innerText) || '';
                     const text = (name + ' ' + sku).toLowerCase();
                     tr.style.display = text.includes(q) ? '' : 'none';
                 });
-            } else if (page === 'pharmacie_sales.html') {
+            } else if (page === 'pharmacie_sales') {
                 document.querySelectorAll('.product-grid .product-card').forEach(card => {
                     const name = (card.querySelector('strong') && card.querySelector('strong').innerText) || '';
                     const id = (card.querySelector('small') && card.querySelector('small').innerText) || '';
                     const txt = (name + ' ' + id).toLowerCase();
                     card.style.display = txt.includes(q) ? 'block' : 'none';
                 });
-            } else if (page === 'pharmacie_prescriptions.html' || page === 'dashboard_pharmacie.html') {
+            } else if (page === 'pharmacie_prescription' || page === 'dashboard_pharmacie') {
                 document.querySelectorAll('.prescription-item').forEach(item => {
                     const patient = (item.querySelector('strong') && item.querySelector('strong').innerText) || '';
                     const doctor = (item.querySelector('span') && item.querySelector('span').innerText) || '';

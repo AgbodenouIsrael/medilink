@@ -18,7 +18,7 @@ class MedecinController extends Controller
     public function create()
     {
         $specialites = \App\Models\Specialite::all();
-        return view('inscription_medecin', compact('specialites'));
+        return view('medecin.auth.register', compact('specialites'));
     }
 
     // Inscription médecin
@@ -31,8 +31,10 @@ class MedecinController extends Controller
             'contact' => 'required|string|max:20',
             'specialite_id' => 'nullable|exists:specialites,id',
             'numero_licence' => 'required|string|unique:medecins',
+
             'certificat_path' => 'required|file|mimes:pdf,jpg,png|max:2048',
             'password' => 'required|string|min:8|confirmed',
+            'privacy_policy' => 'accepted',
         ]);
 
         $path = $request->file('certificat_path')->store('certificats', 'public');
@@ -65,7 +67,7 @@ class MedecinController extends Controller
     // Page en attente de validation
     public function pending()
     {
-        return view('medecin.pending_validation');
+        return view('medecin.status.pending');
     }
 
     // Dashboard
@@ -81,7 +83,7 @@ class MedecinController extends Controller
         $patientsCount = $medecin->patients_autorises()->count();
         // $rdvCount = $medecin->rendezVous()->where('statut', 'planifie')->count(); // À venir
 
-        return view('dashboard_medecin', compact('medecin', 'patientsCount'));
+        return view('medecin.dashboard', compact('medecin', 'patientsCount'));
     }
 
     // Liste des patients
@@ -100,7 +102,7 @@ class MedecinController extends Controller
 
         $patients = $query->get();
 
-        return view('mes_patients', compact('patients'));
+        return view('medecin.patients.index', compact('patients'));
     }
 
     // Détails patient et ajout consultation
@@ -160,7 +162,7 @@ class MedecinController extends Controller
         $hopitaux = $medecin->hopitals; // Relation à définir dans le modèle Medecin
         $allHopitaux = Hopital::where('statut', 'verifie')->get();
 
-        return view('mes_hopitaux_medecin', compact('hopitaux', 'allHopitaux'));
+        return view('medecin.hospitals.index', compact('hopitaux', 'allHopitaux'));
     }
 
     // Profil médecin
@@ -168,7 +170,7 @@ class MedecinController extends Controller
     {
         $medecin = Auth::guard('medecin')->user();
         $medecin->load('specialite'); // Charger la relation
-        return view('profil_medecin', compact('medecin'));
+        return view('medecin.profile', compact('medecin'));
     }
 
     public function joinHopital(Request $request)

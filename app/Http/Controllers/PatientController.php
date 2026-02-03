@@ -17,14 +17,15 @@ class PatientController extends Controller
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
             // Interdit les dates futures
-            'date_naissance' => 'required|date|before:today', 
+            'date_naissance' => 'required|date|before:today',
             'genre' => 'required|in:Homme,Femme,Autre',
             'contact' => 'required|string|max:20', // Contact requis pour un patient
             'email' => 'required|email|unique:patients,email',
             'adresse' => 'nullable|string|max:255',
             'zone_id' => 'nullable|exists:zones,id',
             // Force: 8 caractères, au moins 1 lettre, 1 chiffre
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()], 
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'privacy_policy' => 'accepted',
         ]);
 
         // 2. Création (Le hachage se fait ici)
@@ -41,9 +42,9 @@ class PatientController extends Controller
         ]);
 
         // 3. Connexion immédiate
-       Auth::guard('patient')->login($patient);
+        Auth::guard('patient')->login($patient);
 
-                // Debug : vérifier si l'utilisateur est bien connecté
+        // Debug : vérifier si l'utilisateur est bien connecté
         if (Auth::check()) {
             \Log::info('Utilisateur connecté après inscription: ' . Auth::user()->email);
         } else {
@@ -67,42 +68,42 @@ class PatientController extends Controller
         return redirect()->route('dashboard_patient')->with('success', 'Bienvenue sur Medilink !');
     }
 
-   public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    // ⚠️ CORRECTION ICI : Utiliser le guard 'patient'
-    if (Auth::guard('patient')->attempt($credentials, $request->boolean('remember'))) {
-        $request->session()->regenerate();
-        
-        // Debug
-        \Log::info('Patient connecté: ' . Auth::guard('patient')->user()->email);
-        
-        return redirect()->intended('dashboard_patient');
+        // ⚠️ CORRECTION ICI : Utiliser le guard 'patient'
+        if (Auth::guard('patient')->attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            // Debug
+            \Log::info('Patient connecté: ' . Auth::guard('patient')->user()->email);
+
+            return redirect()->intended('dashboard_patient');
+        }
+
+        return back()->withErrors([
+            'email' => 'Identifiants incorrects.',
+        ])->onlyInput('email');
     }
-
-    return back()->withErrors([
-        'email' => 'Identifiants incorrects.',
-    ])->onlyInput('email');
-}
 
     public function update(Request $request)
     {
         $patient = Auth::user();
-    $validatedData = $request->validate([
-        'nom' => 'required|string|max:100',
-        'prenom' => 'required|string|max:100',
-        'date_naissance' => 'required|date',
-        'contact' => 'nullable|string|max:20',
-        'email' => 'required|email|unique:patients,email,' . $patient->patient_id . ',patient_id',
-        'adresse' => 'nullable|string|max:255',
-    ]);
+        $validatedData = $request->validate([
+            'nom' => 'required|string|max:100',
+            'prenom' => 'required|string|max:100',
+            'date_naissance' => 'required|date',
+            'contact' => 'nullable|string|max:20',
+            'email' => 'required|email|unique:patients,email,' . $patient->patient_id . ',patient_id',
+            'adresse' => 'nullable|string|max:255',
+        ]);
 
-    $patient->update($validatedData);
+        $patient->update($validatedData);
 
-    return redirect()->back()->with('success', 'Informations mises à jour avec succès !');
+        return redirect()->back()->with('success', 'Informations mises à jour avec succès !');
     }
 }

@@ -23,7 +23,7 @@ class PatientChatController extends Controller
             ->latest()
             ->get();
 
-        return view('mes_messages', compact('chats', 'user'));
+        return view('patient.messages.index', compact('chats', 'user'));
     }
 
     public function show($id)
@@ -37,7 +37,7 @@ class PatientChatController extends Controller
 
         $chats = Chat::where('patient_id', $user->id)->latest()->get();
 
-        return view('mes_messages', compact('chat', 'chats', 'user'));
+        return view('patient.messages.index', compact('chat', 'chats', 'user'));
     }
 
     public function store(Request $request, $id)

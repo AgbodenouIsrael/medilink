@@ -17,9 +17,14 @@ use Illuminate\Support\Facades\Mail;
 // ROUTES PUBLIQUES
 // ============================================
 
+// Politique de confidentialité
+Route::get('/politique-de-confidentialite', function () {
+    return view('public.privacy_policy');
+})->name('privacy.policy');
+
 // Page d'accueil / connexion
 Route::get('/', function () {
-    return view('index');
+    return view('public.index');
 })->name('connexion');
 
 // Authentification patient
@@ -27,7 +32,7 @@ Route::post('/connexion', [AuthController::class, 'login'])->name('login.submit'
 
 // Inscription patient
 Route::get('/inscription_patient', function () {
-    return view('inscription_patient');
+    return view('patient.auth.register');
 })->name('inscription_patient');
 
 Route::post('/patients', [PatientController::class, 'store'])->name('patients.store');
@@ -62,9 +67,7 @@ Route::get('/inscription_hopitaux', [HopitalController::class, 'create'])->name(
 Route::post('/inscription/hopital', [HopitalController::class, 'store'])->name('hopital.store');
 
 // Inscription pharmacie
-Route::get('/inscription_pharmacie', function () {
-    return view('inscription_pharmacie');
-})->name('inscription_pharmacie');
+Route::get('/inscription_pharmacie', [PharmacieController::class, 'create'])->name('inscription_pharmacie');
 
 Route::post('/inscription/pharmacie', [PharmacieController::class, 'store'])->name('pharmacie.store');
 
@@ -74,7 +77,7 @@ Route::post('/inscription/pharmacie', [PharmacieController::class, 'store'])->na
 Route::middleware(['auth.patient'])->group(function () {
     // Dashboard patient
     Route::get('/dashboard_patient', function () {
-        return view('dashboard_patient');
+        return view('patient.dashboard');
     })->name('dashboard_patient');
     // Dans le groupe middleware patient
     Route::put('/profil/update', [PatientController::class, 'update'])->name('patient.update');
@@ -83,7 +86,7 @@ Route::middleware(['auth.patient'])->group(function () {
     Route::get('/ma_fiche_medicale', function () {
         $patient = Auth::guard('patient')->user();
 
-        return view('ma_fiche_medicale', [
+        return view('patient.medical_record', [
             'patient' => $patient,
             'antecedents' => $patient->antecedents ?? collect(),
             'allergies' => $patient->allergies ?? collect(),
@@ -94,7 +97,7 @@ Route::middleware(['auth.patient'])->group(function () {
 
     // Trouver pharmacie
     Route::get('/trouver_pharmacie', function () {
-        return view('trouver_pharmacie');
+        return view('patient.find_pharmacy');
     })->name('trouver_pharmacie');
 
     // Messages
@@ -142,7 +145,7 @@ Route::middleware(['auth.medecin'])->group(function () {
 
     // Demande d'accès
     Route::get('/demande_acces', function () {
-        return view('demande_acces');
+        return view('medecin.auth.demande_acces');
     })->name('demande_acces');
     Route::post('/autorisations', [App\Http\Controllers\AutorisationController::class, 'store'])->name('autorisations.store');
 
@@ -194,109 +197,30 @@ Route::middleware(['auth.hopital'])->group(function () {
 // ============================================
 Route::middleware(['auth.pharmacie'])->group(function () {
     // Dashboard pharmacie
-    Route::get('/dashboard_pharmacie', function () {
-        return view('dashboard_pharmacie');
-    })->name('dashboard_pharmacie');
+    Route::get('/dashboard_pharmacie', [PharmacieController::class, 'dashboard'])->name('dashboard_pharmacie');
+
+    // Page en attente
+    Route::get('/pharmacie/pending', [PharmacieController::class, 'pending'])->name('pharmacie.pending');
+
 
     // Prescriptions
-    Route::get('/pharmacie_prescription', function () {
-        return view('pharmacie_prescription');
-    })->name('pharmacie_prescription');
+    Route::get('/pharmacie_prescription', [PharmacieController::class, 'prescriptions'])->name('pharmacie_prescriptions');
 
     // Inventaire
-    Route::get('/pharmacie_inventory', function () {
-        return view('pharmacie_inventory');
-    })->name('pharmacie_inventory');
+    Route::get('/pharmacie_inventory', [PharmacieController::class, 'inventory'])->name('pharmacie.inventory');
 
     // Ventes
-    Route::get('/pharmacie_sales', function () {
-        return view('pharmacie_sales');
-    })->name('pharmacie_sales');
+    Route::get('/pharmacie_sales', [PharmacieController::class, 'sales'])->name('pharmacie_sales');
 
     // Ajouter produit
-    Route::get('/pharmacie_add_product', function () {
-        return view('pharmacie_add_product');
-    })->name('pharmacie_add_product');
+    Route::get('/pharmacie_add_product', [PharmacieController::class, 'createProduct'])->name('pharmacie.add_product');
+    Route::post('/pharmacie_add_product', [PharmacieController::class, 'storeProduct'])->name('pharmacie.store_product');
 
     // Profil pharmacie
-    Route::get('/pharmacie_profil', function () {
-        return view('pharmacie_profil');
-    })->name('pharmacie_profil');
+    Route::get('/pharmacie_profil', [PharmacieController::class, 'profil'])->name('pharmacie_profil');
 
     // Logout pharmacie
     Route::post('/logout/pharmacie', [AuthController::class, 'logout'])->name('logout.pharmacie');
 });
 
 // ============================================
-// ROUTES POUR TESTS (À SUPPRIMER EN PRODUCTION)
-// ============================================
-Route::middleware(['auth.patient'])->group(function () {
-    Route::get('/test-patient', function () {
-        $user = Auth::guard('patient')->user();
-        return "Test patient réussi!<br>ID: {$user->id}<br>Nom: {$user->prenom} {$user->nom}<br>Email: {$user->email}";
-    });
-});
-
-Route::middleware(['auth.medecin'])->group(function () {
-    Route::get('/test-medecin', function () {
-        return "Test médecin réussi!";
-    });
-});
-
-Route::middleware(['auth.hopital'])->group(function () {
-    Route::get('/test-hopital', function () {
-        return "Test hôpital réussi!";
-    });
-});
-
-Route::middleware(['auth.pharmacie'])->group(function () {
-    Route::get('/test-pharmacie', function () {
-        return "Test pharmacie réussi!";
-    });
-});
-
-// ============================================
-
-// ============================================
-// ROUTES PROTÉGÉES - ADMIN
-// ============================================
-// ============================================
-// ROUTES ADMIN LOGIN
-// ============================================
-Route::get('/admin/login', [App\Http\Controllers\AdminController::class, 'showLoginForm'])->name('admin.login');
-Route::post('/admin/login', [App\Http\Controllers\AdminController::class, 'login'])->name('admin.login.submit');
-Route::post('/admin/logout', [App\Http\Controllers\AdminController::class, 'logout'])->name('admin.logout');
-
-// ============================================
-// ROUTES PROTÉGÉES - ADMIN
-// ============================================
-Route::middleware(['auth.admin'])->group(function () {
-    Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/validations', [App\Http\Controllers\AdminController::class, 'validations'])->name('admin.validations');
-    Route::post('/admin/approve', [App\Http\Controllers\AdminController::class, 'approve'])->name('admin.approve');
-    Route::post('/admin/reject', [App\Http\Controllers\AdminController::class, 'reject'])->name('admin.reject');
-});
-
-// ============================================
-Route::get('/debug-session', function () {
-    echo "<h1>Debug Session</h1>";
-    echo "<pre>";
-    echo "Session ID: " . session()->getId() . "\n";
-    echo "All Session Data:\n";
-    print_r(session()->all());
-    echo "\nAuth guards:\n";
-    echo "Patient: " . (Auth::guard('patient')->check() ? 'Connecté' : 'Non connecté') . "\n";
-    echo "Médecin: " . (Auth::guard('medecin')->check() ? 'Connecté' : 'Non connecté') . "\n";
-    echo "Hôpital: " . (Auth::guard('hopital')->check() ? 'Connecté' : 'Non connecté') . "\n";
-    echo "Pharmacie: " . (Auth::guard('pharmacie')->check() ? 'Connecté' : 'Non connecté') . "\n";
-    echo "</pre>";
-});
-
-Route::get('/test-email', function () {
-    try {
-        Mail::to('votre-email-de-test@gmail.com')->send(new MonEmailDeTest());
-        return "Email envoyé avec succès !";
-    } catch (\Exception $e) {
-        return "Erreur : " . $e->getMessage();
-    }
-});
