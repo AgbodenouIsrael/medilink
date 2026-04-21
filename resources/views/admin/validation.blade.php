@@ -182,7 +182,14 @@
                     <td><span class="badge-pending" style="background:#fff3e0; color:#ef6c00;">Pharmacie</span></td>
                     <td>{{ $pharmacie->created_at->format('d/m/Y') }}</td>
                     <td>
-                        <span class="text-gray-500">Validation manuelle (Licence)</span>
+                        @if($pharmacie->fichier_licence_path)
+                            <a href="{{ asset('storage/' . $pharmacie->fichier_licence_path) }}" target="_blank"
+                                style="text-decoration:underline; color:#007bff;">
+                                <i class="fas fa-file-pdf"></i> Licence/Agrément
+                            </a>
+                        @else
+                            <span class="text-gray-500">Validation manuelle (Licence)</span>
+                        @endif
                     </td>
                     <td>
                         <form action="{{ route('admin.approve') }}" method="POST" style="display:inline;">

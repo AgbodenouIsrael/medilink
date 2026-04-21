@@ -189,7 +189,7 @@
             <h2>Inscription Officine</h2>
             <p style="margin-bottom: 25px; color: #777;">Créez votre compte professionnel pour votre pharmacie.</p>
 
-            <form action="{{ route('pharmacie.store') }}" method="POST" novalidate>
+            <form action="{{ route('pharmacie.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="form-grid">
                     <div class="input-group full-width">
@@ -211,6 +211,15 @@
                         <input type="text" id="license_id" name="numero_licence" placeholder="Ex: PH-123456"
                             value="{{ old('numero_licence') }}" required>
                         @error('numero_licence') <span class="error-msg">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label for="fichier_licence">Document de Licence / Agrément (PDF, JPG, PNG)</label>
+                        <input type="file" id="fichier_licence" name="fichier_licence" required
+                            accept=".pdf,.jpg,.jpeg,.png">
+                        <small style="color: #888;">Ce document est requis pour la validation de votre compte par
+                            l'administrateur.</small>
+                        @error('fichier_licence') <span class="error-msg">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="input-group">

@@ -109,7 +109,7 @@ class MedecinController extends Controller
     public function showPatient($id)
     {
         $medecin = Auth::guard('medecin')->user();
-        $patient = Patient::with(['antecedents', 'allergies', 'ordonnances', 'documents_medicaux'])->findOrFail($id);
+        $patient = Patient::with(['antecedents', 'allergies', 'ordonnances', 'documents'])->findOrFail($id);
 
         // Vérification autorisation
         if (!$medecin->patients_autorises()->where('patients.id', $id)->exists()) {

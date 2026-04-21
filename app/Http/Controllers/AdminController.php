@@ -110,6 +110,20 @@ class AdminController extends Controller
         return view('admin.validation', compact('pendingMedecins', 'pendingHopitaux', 'pendingPharmacies', 'pending_count'));
     }
 
+    // Comprehensive Entities Directory
+    public function entities()
+    {
+        $medecins = Medecin::all();
+        $hopitaux = Hopital::all();
+        $pharmacies = Pharmacie::all();
+
+        $pending_count = Medecin::where('statut', 'en_attente')->count() +
+            Hopital::where('statut', 'en_attente')->count() +
+            Pharmacie::where('statut', 'en_attente')->count();
+
+        return view('admin.entities', compact('medecins', 'hopitaux', 'pharmacies', 'pending_count'));
+    }
+
     // Approve Entity
     public function approve(Request $request)
     {
@@ -174,5 +188,26 @@ class AdminController extends Controller
         }
 
         return back()->with('success', 'Compte rejeté et données supprimées.');
+    }
+
+    // Platform Settings
+    public function settings()
+    {
+        $stats = [
+            'medecins' => Medecin::count(),
+            'patients' => \App\Models\Patient::count(),
+            'hopitaux' => Hopital::count(),
+            'pharmacies' => Pharmacie::count(),
+            'total_users' => Medecin::count() + \App\Models\Patient::count() + Hopital::count() + Pharmacie::count(),
+            'db_size' => 'N/A',
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+        ];
+
+        $pending_count = Medecin::where('statut', 'en_attente')->count() +
+            Hopital::where('statut', 'en_attente')->count() +
+            Pharmacie::where('statut', 'en_attente')->count();
+
+        return view('admin.settings', compact('stats', 'pending_count'));
     }
 }

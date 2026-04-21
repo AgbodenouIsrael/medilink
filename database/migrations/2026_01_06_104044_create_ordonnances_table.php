@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('ordonnances', function (Blueprint $table) {
@@ -14,7 +13,7 @@ return new class extends Migration
             $table->foreignId('medecin_id')->nullable()->constrained('medecins')->onDelete('set null');
             $table->date('date_prescription');
             $table->string('numero_ordonnance')->unique();
-            $table->enum('statut', ['active', 'terminee', 'annulee'])->default('active');
+            $table->enum('statut', ['active', 'en_attente', 'valide', 'terminee', 'annulee'])->default('en_attente');
             $table->text('instructions')->nullable();
             $table->date('date_debut_traitement')->nullable();
             $table->date('date_fin_traitement')->nullable();

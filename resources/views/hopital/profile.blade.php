@@ -90,26 +90,53 @@
         <div class="settings-card">
             <h3><i class="fas fa-info-circle"></i> Informations de l'Établissement</h3>
 
-            <div class="info-row">
-                <strong>Nom :</strong> {{ $hopital->nom }}
-            </div>
+            <form action="{{ route('hopital.update_profil') }}" method="POST">
+                @csrf
+                <div class="info-row" style="background: transparent; border: none; padding: 0; margin-bottom: 20px;">
+                    <label for="nom" style="display: block; font-weight: bold; margin-bottom: 5px;">Nom de l'Établissement :</label>
+                    <input type="text" id="nom" name="nom" value="{{ old('nom', $hopital->nom) }}" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 5px;">
+                    @error('nom') <span class="error-msg" style="color: red; font-size: 0.8em;">{{ $message }}</span> @enderror
+                </div>
 
-            <div class="info-row">
-                <strong>Email Institutionnel :</strong> {{ $hopital->email }}
-            </div>
+                <div class="info-row" style="background: transparent; border: none; padding: 0; margin-bottom: 20px;">
+                    <label for="email" style="display: block; font-weight: bold; margin-bottom: 5px;">Email Institutionnel :</label>
+                    <input type="email" id="email" name="email" value="{{ old('email', $hopital->email) }}" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 5px;">
+                    @error('email') <span class="error-msg" style="color: red; font-size: 0.8em;">{{ $message }}</span> @enderror
+                </div>
 
-            <div class="info-row">
-                <strong>Contact :</strong> {{ $hopital->contact }}
-            </div>
+                <div class="info-row" style="background: transparent; border: none; padding: 0; margin-bottom: 20px;">
+                    <label for="contact" style="display: block; font-weight: bold; margin-bottom: 5px;">Contact :</label>
+                    <input type="text" id="contact" name="contact" value="{{ old('contact', $hopital->contact) }}" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 5px;">
+                    @error('contact') <span class="error-msg" style="color: red; font-size: 0.8em;">{{ $message }}</span> @enderror
+                </div>
 
-            <div class="info-row">
-                <strong>Adresse :</strong> {{ $hopital->adresse }}
-            </div>
+                <div class="info-row" style="background: transparent; border: none; padding: 0; margin-bottom: 20px;">
+                    <label for="adresse" style="display: block; font-weight: bold; margin-bottom: 5px;">Adresse :</label>
+                    <input type="text" id="adresse" name="adresse" value="{{ old('adresse', $hopital->adresse) }}" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 5px;">
+                    @error('adresse') <span class="error-msg" style="color: red; font-size: 0.8em;">{{ $message }}</span> @enderror
+                </div>
 
-            <div class="info-row">
-                <strong>Ville/Zone :</strong> {{ $hopital->zone->nom ?? 'Non définie' }}
-                ({{ $hopital->zone->ville ?? '' }})
-            </div>
+                <div class="info-row" style="background: transparent; border: none; padding: 0; margin-bottom: 20px;">
+                    <label for="zone_id" style="display: block; font-weight: bold; margin-bottom: 5px;">Ville/Zone :</label>
+                    <select id="zone_id" name="zone_id" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: 5px;">
+                        @foreach(App\Models\Zone::all() as $zone)
+                            <option value="{{ $zone->id }}" {{ old('zone_id', $hopital->zone_id) == $zone->id ? 'selected' : '' }}>
+                                {{ $zone->nom }} ({{ $zone->ville }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('zone_id') <span class="error-msg" style="color: red; font-size: 0.8em;">{{ $message }}</span> @enderror
+                </div>
+
+                <button type="submit" class="btn primary-btn" style="background-color: var(--color-hopital); margin-top: 10px;">
+                    <i class="fas fa-save"></i> Enregistrer les modifications
+                </button>
+            </form>
         </div>
 
         <div class="settings-card">
@@ -139,6 +166,13 @@
 
             <div class="info-row">
                 <strong>Patients traités :</strong> {{ $hopital->patients()->count() }}
+            </div>
+
+            <div class="info-row" style="margin-top: 20px; border-left-color: var(--color-primary-blue);">
+                <a href="{{ route('hopital.specialites.index') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-hand-holding-medical" style="color: var(--color-primary-blue);"></i>
+                    <strong>Gérer nos Spécialités & Services</strong>
+                </a>
             </div>
         </div>
     </section>

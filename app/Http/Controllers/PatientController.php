@@ -106,4 +106,162 @@ class PatientController extends Controller
 
         return redirect()->back()->with('success', 'Informations mises à jour avec succès !');
     }
+
+    public function findPharmacy(Request $request)
+    {
+        $patient = Auth::guard('patient')->user();
+
+        // Get search parameters
+        $searchZone = $request->input('zone');
+        $searchMedicament = $request->input('medicament');
+
+        // Build query for pharmacies
+        $query = \App\Models\Pharmacie::with('zone')
+            ->where('statut', 'valide'); // Only show validated pharmacies
+
+        // Filter by zone if provided (don't default to patient zone anymore)
+        if ($searchZone) {
+            $query->whereHas('zone', function ($q) use ($searchZone) {
+                $q->where('nom', 'like', '%' . $searchZone . '%')
+                    ->orWhere('ville', 'like', '%' . $searchZone . '%');
+            });
+        }
+
+        // Filter by medication if provided
+        if ($searchMedicament) {
+            $query->whereHas('medicaments', function ($q) use ($searchMedicament) {
+                $q->where('nom', 'like', '%' . $searchMedicament . '%');
+            });
+        }
+
+        $pharmacies = $query->get();
+
+        // Calculate distance for each pharmacy if patient has zone with coordinates
+        // or if pharmacy has coordinates
+        $patientLat = null;
+        $patientLng = null;
+
+        // Try to get patient coordinates (we'll use a default for their zone)
+        // For now, we'll calculate distance only if pharmacy has coordinates
+        if ($patient && $patient->zone_id) {
+            // Get first pharmacy in same zone to estimate patient location
+            $samplePharmacy = \App\Models\Pharmacie::where('zone_id', $patient->zone_id)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->first();
+
+            if ($samplePharmacy) {
+                $patientLat = $samplePharmacy->latitude;
+                $patientLng = $samplePharmacy->longitude;
+            }
+        }
+
+        // Add distance to each pharmacy
+        $pharmacies = $pharmacies->map(function ($pharmacy) use ($patientLat, $patientLng) {
+            if ($pharmacy->latitude && $pharmacy->longitude && $patientLat && $patientLng) {
+                $pharmacy->distance = $this->calculateDistance(
+                    $patientLat,
+                    $patientLng,
+                    $pharmacy->latitude,
+                    $pharmacy->longitude
+                );
+            } else {
+                $pharmacy->distance = null;
+            }
+            return $pharmacy;
+        });
+
+        // Sort by distance if available
+        $pharmacies = $pharmacies->sortBy(function ($pharmacy) {
+            return $pharmacy->distance ?? 999999; // Put pharmacies without distance at the end
+        });
+
+        return view('patient.find_pharmacy', [
+            'pharmacies' => $pharmacies,
+            'patient' => $patient,
+            'patientLat' => $patientLat,
+            'patientLng' => $patientLng,
+            'searchQuery' => [
+                'zone' => $searchZone,
+                'medicament' => $searchMedicament
+            ]
+        ]);
+    }
+
+    /**
+     * Calculate distance between two coordinates using Haversine formula
+     * Returns distance in kilometers
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // Earth's radius in kilometers
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return round($earthRadius * $c, 2);
+    }
+
+    public function guideHospitals(Request $request)
+    {
+        $patient = Auth::guard('patient')->user();
+
+        // Get specialty filter if provided
+        $specialtyFilter = $request->input('specialite');
+
+        // Build query for hospitals - show all by default
+        $query = \App\Models\Hopital::with(['zone', 'medecins.specialite', 'specialites'])
+            ->where('statut', 'verifie'); // Only show verified hospitals
+
+        // Filter by specialty if provided
+        if ($specialtyFilter) {
+            $query->where(function ($q) use ($specialtyFilter) {
+                // Filter by declared specialties
+                $q->whereHas('specialites', function ($sub) use ($specialtyFilter) {
+                    $sub->where('nom', 'like', '%' . $specialtyFilter . '%');
+                })
+                    // OR filter by affiliated doctors' specialties (as backup/alternative)
+                    ->orWhereHas('medecins.specialite', function ($sub) use ($specialtyFilter) {
+                        $sub->where('nom', 'like', '%' . $specialtyFilter . '%');
+                    });
+            });
+        }
+
+        $hospitals = $query->get();
+
+        // Get unique specialties for the filter dropdown from Specialite table
+        $specialties = \App\Models\Specialite::orderBy('nom')->pluck('nom');
+
+        // Get patient coordinates for map centering (estimate from zone)
+        $patientLat = null;
+        $patientLng = null;
+
+        if ($patient && $patient->zone_id) {
+            // Try to get coordinates from a pharmacy in the same zone
+            $sampleLocation = \App\Models\Pharmacie::where('zone_id', $patient->zone_id)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->first();
+
+            if ($sampleLocation) {
+                $patientLat = $sampleLocation->latitude;
+                $patientLng = $sampleLocation->longitude;
+            }
+        }
+
+        return view('patient.guide_hospitals', [
+            'hospitals' => $hospitals,
+            'patient' => $patient,
+            'patientLat' => $patientLat,
+            'patientLng' => $patientLng,
+            'specialties' => $specialties,
+            'selectedSpecialty' => $specialtyFilter
+        ]);
+    }
 }

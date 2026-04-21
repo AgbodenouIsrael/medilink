@@ -48,6 +48,13 @@ class Hopital extends Authenticatable
         return $this->hasMany(Autorisation::class);
     }
 
+    public function specialites()
+    {
+        return $this->belongsToMany(Specialite::class, 'hopital_specialite')
+            ->withPivot('description')
+            ->withTimestamps();
+    }
+
     // Patients linked via accepted authorizations for this hospital
     public function patients()
     {

@@ -24,7 +24,8 @@ class Pharmacie extends Authenticatable
         'accepte_ordonnances',
         'en_ligne',
         'horaires_ouverture',
-        'statut'
+        'statut',
+        'fichier_licence_path'
     ];
 
     protected $hidden = [

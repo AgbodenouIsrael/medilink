@@ -26,6 +26,9 @@
                 class="nav-item {{ Route::currentRouteName() == 'liste_medecins_hopital' ? 'active' : '' }}"><i
                     class="fas fa-user-md"></i> Médecins de
                 l'Hôpital</a>
+            <a href="{{ route('hopital.specialites.index') }}"
+                class="nav-item {{ Route::currentRouteName() == 'hopital.specialites.index' ? 'active' : '' }}"><i
+                    class="fas fa-hand-holding-medical"></i> Services & Spécialités</a>
             <a href="{{ route('profil_hopital') }}"
                 class="nav-item profile-link {{ Route::currentRouteName() == 'profil_hopital' ? 'active' : '' }}"><i
                     class="fas fa-user-circle"></i>

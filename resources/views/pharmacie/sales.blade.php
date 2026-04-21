@@ -32,7 +32,7 @@
         }
 
         .product-card:hover {
-            border-color: #00A651;
+            border-color: #FF6600;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
@@ -47,8 +47,9 @@
         .product-icon {
             width: 40px;
             height: 40px;
-            background: #E8F5E9;
-            color: #00A651;
+            background: #FFF3E0;
+            /* Light Orange */
+            color: #FF6600;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -57,7 +58,7 @@
         }
 
         .product-price {
-            color: #00A651;
+            color: #FF6600;
             font-weight: 700;
             font-size: 18px;
             margin-top: 10px;
@@ -186,7 +187,6 @@
 
 @section('scripts')
     <script>
-
         // On stocke les produits du panier ici
         let cart = [];
         const cartContainer = document.querySelector('.cart-card');
@@ -197,7 +197,7 @@
             card.addEventListener('click', () => {
                 const name = card.querySelector('strong').innerText;
                 const priceText = card.querySelector('.product-price').innerText;
-                const price = parseInt(priceText.replace(' CFA', ''));
+                const price = parseInt(priceText.replace(/\D/g, '')); // Robust parsing
                 const id = card.querySelector('small').innerText;
 
                 addToCart(id, name, price);
@@ -237,58 +237,97 @@
                 emptyCartView.style.display = 'none';
 
                 // On crée la liste des items
-                let html = `<div style="padding:20px; border-bottom:1px solid #eee;"><strong>Current Sale</strong></div>`;
+                let html = `<div style="padding:20px; border-bottom:1px solid #eee;"><strong>Vente Actuelle</strong></div>`;
                 html += `<div style="flex-grow:1; overflow-y:auto; padding:10px;">`;
 
                 let total = 0;
                 cart.forEach(item => {
                     total += item.price * item.qty;
                     html += `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:15px; padding:10px; background:#f9f9f9; border-radius:8px; align-items:center;">
-                        <div style="max-width:65%;">
-                            <div style="font-weight:600; font-size:14px;">${item.name}</div>
-                            <small>${item.price} CFA unité</small>
-                            <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-                                <button onclick="changeQty('${item.id}', -1)" style="padding:6px 8px;border-radius:6px;border:1px solid #ddd;background:white;cursor:pointer;">-</button>
-                                <div style="min-width:28px;text-align:center;font-weight:700;">${item.qty}</div>
-                                <button onclick="changeQty('${item.id}', 1)" style="padding:6px 8px;border-radius:6px;border:1px solid #ddd;background:white;cursor:pointer;">+</button>
-                                <button onclick="removeItem('${item.id}')" style="margin-left:8px;padding:6px 8px;border-radius:6px;border:1px solid #f0f0f0;background:#fff;color:#d32f2f;cursor:pointer;">Suppr</button>
-                            </div>
-                        </div>
-                        <div style="font-weight:700;">${item.price * item.qty} CFA</div>
-                    </div>`;
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; padding:10px; background:#f9f9f9; border-radius:8px; align-items:center;">
+                                    <div style="max-width:65%;">
+                                        <div style="font-weight:600; font-size:14px;">${item.name}</div>
+                                        <small>${item.price} CFA unité</small>
+                                        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                                            <button onclick="changeQty('${item.id}', -1)" style="padding:6px 8px;border-radius:6px;border:1px solid #ddd;background:white;cursor:pointer;">-</button>
+                                            <div style="min-width:28px;text-align:center;font-weight:700;">${item.qty}</div>
+                                            <button onclick="changeQty('${item.id}', 1)" style="padding:6px 8px;border-radius:6px;border:1px solid #ddd;background:white;cursor:pointer;">+</button>
+                                            <button onclick="removeItem('${item.id}')" style="margin-left:8px;padding:6px 8px;border-radius:6px;border:1px solid #f0f0f0;background:#fff;color:#d32f2f;cursor:pointer;">Suppr</button>
+                                        </div>
+                                    </div>
+                                    <div style="font-weight:700;">${item.price * item.qty} CFA</div>
+                                </div>`;
                 });
 
                 html += `</div>`;
 
                 // Section Total et Bouton Checkout
                 html += `
-                <div style="padding:20px; border-top:1px solid #eee; background: #fafafa;">
-                    <div style="display:flex; justify-content:space-between; font-weight:700; font-size:1.2em; margin-bottom:20px;">
-                        <span>Total</span><span>${total} CFA</span>
-                    </div>
-                    <button id="checkoutBtn" onclick="processCheckout(${total})" style="width:100%; padding:15px; border-radius:8px; border:none; background:#00A651; color:white; font-weight:600; cursor:pointer;">Checkout</button>
-                </div>`;
+                            <div style="padding:20px; border-top:1px solid #eee; background: #fafafa;">
+                                <div style="display:flex; justify-content:space-between; font-weight:700; font-size:1.2em; margin-bottom:20px;">
+                                    <span>Total</span><span>${total} CFA</span>
+                                </div>
+                                <button id="checkoutBtn" onclick="processCheckout(${total})" style="width:100%; padding:15px; border-radius:8px; border:none; background:#FF6600; color:white; font-weight:600; cursor:pointer;">Valider la Vente</button>
+                            </div>`;
 
                 cartContainer.innerHTML = html;
+            } else {
+                emptyCartView.style.display = 'flex';
+                cartContainer.innerHTML = `
+                            <div style="padding:20px; border-bottom:1px solid #eee;"><strong>Vente Actuelle</strong></div>
+                            ${emptyCartView.outerHTML}
+                            `;
+                window.location.reload();
             }
         }
 
-        // 3. Bouton Checkout (Simulation)
+        // 3. Process Checkout via AJAX
         function processCheckout(total) {
             if (!cart.length) return;
             if (confirm(`Confirmer la vente de ${total} CFA ?`)) {
-                // Show a small success overlay animation
-                const overlay = document.createElement('div');
-                overlay.style.position = 'fixed'; overlay.style.left = 0; overlay.style.top = 0; overlay.style.right = 0; overlay.style.bottom = 0;
-                overlay.style.display = 'flex'; overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
-                overlay.style.background = 'rgba(0,0,0,0.35)'; overlay.style.zIndex = 1200;
-                overlay.innerHTML = `<div style="background:white;padding:30px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><i class="fas fa-check-circle" style="font-size:48px;color:#00A651;"></i><div style="font-weight:700">Vente enregistrée</div><div style="color:#666">${total} CFA</div></div>`;
-                document.body.appendChild(overlay);
-                // reset cart
-                cart = [];
-                renderCart();
-                setTimeout(() => { overlay.remove(); }, 1800);
+
+                const btn = document.getElementById('checkoutBtn');
+                btn.disabled = true;
+                btn.innerText = "Traitement...";
+
+                fetch("{{ route('pharmacie.process_sale') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({
+                        items: cart,
+                        total: total
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Success Overlay
+                            const overlay = document.createElement('div');
+                            overlay.style.position = 'fixed'; overlay.style.left = 0; overlay.style.top = 0; overlay.style.right = 0; overlay.style.bottom = 0;
+                            overlay.style.display = 'flex'; overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
+                            overlay.style.background = 'rgba(0,0,0,0.35)'; overlay.style.zIndex = 1200;
+                            overlay.innerHTML = `<div style="background:white;padding:30px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><i class="fas fa-check-circle" style="font-size:48px;color:#FF6600;"></i><div style="font-weight:700">Vente enregistrée</div><div style="color:#666">${total} CFA</div></div>`;
+                            document.body.appendChild(overlay);
+
+                            cart = [];
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            alert("Erreur: " + (data.message || "Une erreur est survenue"));
+                            btn.disabled = false;
+                            btn.innerText = "Valider la Vente";
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Erreur de connexion");
+                        btn.disabled = false;
+                        btn.innerText = "Valider la Vente";
+                    });
             }
         }
 
@@ -317,7 +356,11 @@
 
             const hasVisibleItems = Array.from(productCards).some(card => card.style.display !== 'none');
 
-            if (!hasVisibleItems) {
+            // Logic needs to be slightly robust for 'display: block' vs 'none'
+            let visibleCount = 0;
+            productCards.forEach(c => { if (c.style.display !== 'none') visibleCount++; });
+
+            if (visibleCount === 0) {
                 if (!existingNoResult) {
                     const msg = document.createElement('div');
                     msg.id = 'no-result';

@@ -3,119 +3,235 @@
 @section('title', 'Mes Autorisations - MediLink')
 
 @section('styles')
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .auth-section {
+            background-color: #fff;
+            padding: 25px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .auth-header {
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        .auth-header.pending {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+        }
+
+        .auth-header.active {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+        }
+
+        .auth-item {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .auth-item:last-child {
+            border-bottom: none;
+        }
+
+        .auth-info {
+            flex: 1;
+        }
+
+        .auth-info .name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .auth-info .detail {
+            font-size: 0.9em;
+            color: #666;
+            margin: 3px 0;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-approve {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+        .btn-reject {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-reject:hover {
+            background-color: #c82333;
+        }
+
+        .btn-revoke {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-revoke:hover {
+            background-color: #5a6268;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
 @endsection
 
 @section('content')
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- Messages Alert -->
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('error') }}</span>
-            </div>
-        @endif
+    <header class="dashboard-header">
+        <h2>Gestion des Accès Médicaux</h2>
+        <p>Gérez les autorisations d'accès à votre dossier médical</p>
+    </header>
 
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Gestion des Accès Médicaux</h1>
-
-        <!-- Demandes en attente -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-yellow-50">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-clock text-yellow-500 mr-2"></i>Demandes en attente
-                </h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">Mèdecins demandant l'accès à votre dossier.</p>
-            </div>
-            <ul class="divide-y divide-gray-200">
-                @forelse($autorisations->where('statut', 'en_attente') as $auth)
-                    <li class="px-4 py-4 sm:px-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <span class="text-sm font-medium text-blue-600 truncate">
-                                    Dr. {{ $auth->medecin->prenom }} {{ $auth->medecin->nom }}
-                                </span>
-                                <span class="text-sm text-gray-500">
-                                    Motif: {{ $auth->motif }}
-                                </span>
-                                <span class="text-xs text-gray-400">
-                                    Type d'accès: <strong>{{ ucfirst($auth->type_acces) }}</strong>
-                                </span>
-                            </div>
-                            <div class="flex space-x-2">
-                                <form action="{{ route('autorisations.update', $auth->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="statut" value="approuve">
-                                    <button type="submit"
-                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none">
-                                        <i class="fas fa-check mr-1"></i> Accepter
-                                    </button>
-                                </form>
-                                <form action="{{ route('autorisations.update', $auth->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="statut" value="refuse">
-                                    <button type="submit"
-                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none">
-                                        <i class="fas fa-times mr-1"></i> Refuser
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </li>
-                @empty
-                    <li class="px-4 py-6 text-center text-gray-500 italic">Aucune demande en attente.</li>
-                @endforelse
-            </ul>
+    {{-- Messages Alert --}}
+    @if(session('success'))
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
         </div>
-
-        <!-- Accès Actifs -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-green-50">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-user-md text-green-500 mr-2"></i>Médecins Autorisés
-                </h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">Liste des professionnels ayant accès à votre dossier.
-                </p>
-            </div>
-            <ul class="divide-y divide-gray-200">
-                @forelse($autorisations->where('statut', 'approuve') as $auth)
-                    <li class="px-4 py-4 sm:px-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <span class="text-sm font-medium text-gray-900">
-                                    Dr. {{ $auth->medecin->prenom }} {{ $auth->medecin->nom }}
-                                </span>
-                                <span class="text-sm text-gray-500">
-                                    Spécialité: {{ $auth->medecin->specialite->nom ?? 'Généraliste' }}
-                                </span>
-                                <span class="text-xs text-gray-400">
-                                    Expire le: {{ $auth->date_fin ? $auth->date_fin->format('d/m/Y') : 'Illimité' }}
-                                </span>
-                            </div>
-                            <div>
-                                <form action="{{ route('autorisations.destroy', $auth->id) }}" method="POST"
-                                    onsubmit="return confirm('Êtes-vous sûr de vouloir révoquer l\'accès ?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
-                                        <i class="fas fa-ban mr-1 text-red-500"></i> Révoquer
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </li>
-                @empty
-                    <li class="px-4 py-6 text-center text-gray-500 italic">Aucun médecin n'a accès à votre dossier
-                        actuellement.</li>
-                @endforelse
-            </ul>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
         </div>
+    @endif
+
+    {{-- Demandes en attente --}}
+    <div class="auth-section">
+        <div class="auth-header pending">
+            <h3><i class="fas fa-clock"></i> Demandes en attente</h3>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9em;">Médecins demandant l'accès à votre dossier.</p>
+        </div>
+        @forelse($autorisations->where('statut', 'en_attente') as $auth)
+            <div class="auth-item">
+                <div class="auth-info">
+                    <div class="name">
+                        Dr. {{ $auth->medecin->prenom }} {{ $auth->medecin->nom }}
+                    </div>
+                    <div class="detail">
+                        <i class="fas fa-comment"></i> Motif: {{ $auth->motif }}
+                    </div>
+                    <div class="detail">
+                        <i class="fas fa-key"></i> Type d'accès: <strong>{{ ucfirst($auth->type_acces) }}</strong>
+                    </div>
+                </div>
+                <div class="auth-actions">
+                    <form action="{{ route('autorisations.update', $auth->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="statut" value="approuve">
+                        <button type="submit" class="btn-approve">
+                            <i class="fas fa-check"></i> Accepter
+                        </button>
+                    </form>
+                    <form action="{{ route('autorisations.update', $auth->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="statut" value="refuse">
+                        <button type="submit" class="btn-reject">
+                            <i class="fas fa-times"></i> Refuser
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <div class="empty-state">Aucune demande en attente.</div>
+        @endforelse
+    </div>
+
+    {{-- Accès Actifs --}}
+    <div class="auth-section">
+        <div class="auth-header active">
+            <h3><i class="fas fa-user-md"></i> Médecins Autorisés</h3>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9em;">Liste des professionnels ayant accès à votre
+                dossier.</p>
+        </div>
+        @forelse($autorisations->where('statut', 'approuve') as $auth)
+            <div class="auth-item">
+                <div class="auth-info">
+                    <div class="name">
+                        Dr. {{ $auth->medecin->prenom }} {{ $auth->medecin->nom }}
+                    </div>
+                    <div class="detail">
+                        <i class="fas fa-stethoscope"></i> Spécialité: {{ $auth->medecin->specialite->nom ?? 'Généraliste' }}
+                    </div>
+                    <div class="detail">
+                        <i class="fas fa-calendar"></i> Expire le:
+                        {{ $auth->date_fin ? $auth->date_fin->format('d/m/Y') : 'Illimité' }}
+                    </div>
+                </div>
+                <div class="auth-actions">
+                    <form action="{{ route('autorisations.destroy', $auth->id) }}" method="POST"
+                        onsubmit="return confirm('Voulez-vous vraiment révoquer cet accès ?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-revoke">
+                            <i class="fas fa-ban"></i> Révoquer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <div class="empty-state">Aucun médecin autorisé.</div>
+        @endforelse
     </div>
 @endsection

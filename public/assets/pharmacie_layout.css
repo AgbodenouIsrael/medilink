@@ -1,0 +1,119 @@
+/* Main Layout */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    background: #FF6600;
+    /* Pharmacy Orange */
+    color: white;
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.logo {
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-menu {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+}
+
+.nav-item {
+    padding: 15px 25px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding-left: 30px;
+}
+
+.nav-item.active {
+    background: white;
+    color: #FF6600;
+    font-weight: 600;
+    border-right: 4px solid #CC5200;
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.logout {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout:hover {
+    background: #c0392b;
+    color: white;
+}
+
+/* User Profile in Sidebar */
+.user-profile {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Main Content Area */
+.main-content {
+    margin-left: 250px;
+    padding: 30px;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 70px;
+    }
+
+    .logo span,
+    .nav-item span,
+    .user-profile div div:last-child {
+        display: none;
+    }
+
+    .nav-item {
+        padding: 15px;
+        justify-content: center;
+    }
+
+    .nav-item:hover {
+        padding-left: 15px;
+    }
+
+    .main-content {
+        margin-left: 70px;
+    }
+}

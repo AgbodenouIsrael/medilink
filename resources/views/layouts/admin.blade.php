@@ -26,7 +26,12 @@
                 <span
                     style="background:white; color:var(--color-admin); padding:2px 6px; border-radius:10px; font-size:0.7em; margin-left:5px;">{{ $pending_count ?? 0 }}</span>
             </a>
-            <a href="#" class="nav-item"><i class="fas fa-cogs"></i> Paramètres Plateforme</a>
+            <a href="{{ route('admin.entities') }}"
+                class="nav-item {{ Route::currentRouteName() == 'admin.entities' ? 'active' : '' }}"><i
+                    class="fas fa-address-book"></i> Annuaire des Comptes</a>
+            <a href="{{ route('admin.settings') }}"
+                class="nav-item {{ Route::currentRouteName() == 'admin.settings' ? 'active' : '' }}"><i
+                    class="fas fa-cogs"></i> Paramètres Plateforme</a>
             <a href="{{ route('connexion') }}" class="nav-item logout"><i class="fas fa-sign-out-alt"></i>
                 Déconnexion</a>
         </nav>

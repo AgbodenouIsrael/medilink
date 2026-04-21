@@ -66,6 +66,12 @@
                 class="nav-item {{ Route::currentRouteName() == 'pharmacie_sales' ? 'active' : '' }}"><i
                     class="fas fa-cash-register"></i> Ventes /
                 Point de vente</a>
+            <a href="{{ route('pharmacie.history') }}"
+                class="nav-item {{ Route::currentRouteName() == 'pharmacie.history' ? 'active' : '' }}"><i
+                    class="fas fa-history"></i> Historique Ventes</a>
+            <a href="{{ route('pharmacie.messages') }}"
+                class="nav-item {{ Route::currentRouteName() == 'pharmacie.messages' ? 'active' : '' }}"><i
+                    class="fas fa-comments"></i> Messages</a>
             <a href="{{ route('pharmacie_profil') }}"
                 class="nav-item {{ Route::currentRouteName() == 'pharmacie_profil' ? 'active' : '' }}"><i
                     class="fas fa-user-cog"></i> Paramètres du
@@ -81,7 +87,7 @@
         <div class="user-profile" style="padding: 20px; border-top: 1px solid #eee;">
             <div style="display:flex; align-items:center;">
                 <div
-                    style="width:40px; height:40px; background:#00A651; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:10px;">
+                    style="width:40px; height:40px; background:white; color:#FF6600; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:10px;">
                     {{ substr(Auth::guard('pharmacie')->user()->nom_officine ?? 'PH', 0, 2) }}
                 </div>
                 <div>

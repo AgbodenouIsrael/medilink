@@ -4,39 +4,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compte en Attente de Validation - MediLink</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>En Attente de Validation - MediLink</title>
+    <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        rel="stylesheet">
+    <style>
+        :root {
+            --color-medecin: #4F46E5;
+            /* Indigo */
+        }
+
+        .pending-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f7f6;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .pending-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+
+        .icon-pending {
+            font-size: 4em;
+            color: var(--color-medecin);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            margin-top: 30px;
+            display: inline-block;
+            background: var(--color-medecin);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-home:hover {
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: #eef2ff;
+            border: 1px solid #e0e7ff;
+            color: #3730a3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body>
+    <div class="pending-container">
+        <div class="pending-card">
+            <i class="fas fa-user-md icon-pending"></i>
+            <h2>Votre compte est en cours d'examen</h2>
 
-    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        <div class="mb-6 text-yellow-500">
-            <i class="fas fa-hourglass-half text-6xl"></i>
+            <p>Merci de votre inscription, Dr. {{ Auth::guard('medecin')->user()->nom }}.</p>
+            <p>Votre dossier est actuellement analysé par nos administrateurs. Vous recevrez un email dès que votre
+                compte sera validé.</p>
+
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i> Cette étape est nécessaire pour garantir la sécurité et la fiabilité
+                de notre réseau médical.
+            </div>
+
+            <form action="{{ route('logout.medecin') }}" method="POST" style="margin-top: 20px;">
+                @csrf
+                <button type="submit" class="btn-home" style="border:none; cursor:pointer;">
+                    <i class="fas fa-sign-out-alt"></i> Se déconnecter
+                </button>
+            </form>
         </div>
-
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">Votre compte est en cours d'examen</h1>
-
-        <p class="text-gray-600 mb-6">
-            Merci de votre inscription, Dr. {{ Auth::guard('medecin')->user()->nom }}.<br>
-            Votre dossier (y compris votre licence et certificat) est actuellement analysé par nos administrateurs.
-        </p>
-
-        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded mb-6 text-sm">
-            <i class="fas fa-info-circle"></i> Vous recevrez un email dès que votre compte sera validé pour accéder à
-            votre tableau de bord.
-        </div>
-
-        <form action="{{ route('logout.medecin') }}" method="POST">
-            @csrf
-            <button type="submit"
-                class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition w-full">
-                <i class="fas fa-sign-out-alt"></i> Se déconnecter
-            </button>
-        </form>
     </div>
-
 </body>
 
 </html>

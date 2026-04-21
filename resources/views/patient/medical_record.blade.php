@@ -530,7 +530,8 @@
                                 </div>
                             </div>
                             <div>
-                                <a href="{{ Storage::url($document->chemin_fichier) }}" target="_blank" class="btn-action btn-edit">
+                                <a href="{{ Storage::disk('public')->url($document->chemin_fichier) }}" target="_blank"
+                                    class="btn-action btn-edit">
                                     <i class="fas fa-download"></i> Télécharger
                                 </a>
                                 <form action="{{ route('document.destroy', $document->id) }}" method="POST"
@@ -598,6 +599,59 @@
                 <div class="modal-footer">
                     <button type="button" onclick="closeModal('modalAntecedent')" class="btn-cancel">Annuler</button>
                     <button type="submit" class="btn-save"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal pour Modifier un Antécédent --}}
+    <div id="modalAntecedentEdit" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Modifier un Antécédent</h3>
+                <span onclick="closeModal('modalAntecedentEdit')" style="cursor: pointer; font-size: 24px;">&times;</span>
+            </div>
+            <form id="formEditAntecedent" action="" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="edit_type">Type d'antécédent *</label>
+                        <select name="type" id="edit_type" required>
+                            <option value="familial">Familial</option>
+                            <option value="personnel">Personnel</option>
+                            <option value="chirurgical">Chirurgical</option>
+                            <option value="obstetrical">Obstétrical</option>
+                            <option value="autres">Autres</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_date_diagnostic">Date diagnostic *</label>
+                        <input type="date" name="date_diagnostic" id="edit_date_diagnostic" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="edit_description">Description *</label>
+                        <textarea name="description" id="edit_description" rows="3" required
+                            placeholder="Décrivez l'antécédent..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_statut">Statut *</label>
+                        <select name="statut" id="edit_statut" required>
+                            <option value="actif">Actif</option>
+                            <option value="gueri">Guéri</option>
+                            <option value="chronique">Chronique</option>
+                            <option value="en_suivi">En suivi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_commentaires">Commentaires</label>
+                        <textarea name="commentaires" id="edit_commentaires" rows="2"
+                            placeholder="Commentaires supplémentaires..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('modalAntecedentEdit')" class="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -678,9 +732,8 @@
                         <label for="type_document">Type de document *</label>
                         <select name="type_document" id="type_document" required>
                             <option value="ordonnance">Ordonnance</option>
-                            <option value="radiographie">Radiographie</option>
-                            <option value="analyse">Analyse médicale</option>
-                            <option value="compte_rendu">Compte-rendu</option>
+                            <option value="resultat_analyse">Résultat d'analyse</option>
+                            <option value="radiologie">Radiologie</option>
                             <option value="certificat">Certificat médical</option>
                             <option value="autre">Autre</option>
                         </select>
@@ -726,10 +779,38 @@
         }
 
         function editAntecedent(id) {
-            // Ici vous ajouteriez la logique pour pré-remplir le formulaire d'édition
-            // Pour l'instant, on ouvre le modal d'ajout
-            openModal('antecedent');
-            // Vous devrez ajouter une requête AJAX pour récupérer les données
+            // Fetch antecedent data via AJAX
+            fetch(`/antecedents/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Populate the edit form
+                    document.getElementById('edit_type').value = data.type || '';
+                    document.getElementById('edit_date_diagnostic').value = data.date_diagnostic || '';
+                    document.getElementById('edit_description').value = data.description || '';
+                    document.getElementById('edit_statut').value = data.statut || '';
+                    document.getElementById('edit_commentaires').value = data.commentaires || '';
+
+                    // Set form action to update route
+                    document.getElementById('formEditAntecedent').action = `/antecedents/${id}`;
+
+                    // Open the edit modal
+                    openModal('modalAntecedentEdit');
+                })
+                .catch(error => {
+                    console.error('Error fetching antecedent:', error);
+                    alert('Erreur lors du chargement des données. Veuillez réessayer.');
+                });
         }
 
         // Modal pour le profil - Note: seems to reuse ID logic from dashboard or similar

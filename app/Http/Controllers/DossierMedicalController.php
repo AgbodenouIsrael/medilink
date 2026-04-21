@@ -29,11 +29,12 @@ class DossierMedicalController extends Controller
         $antecedents = $patient->antecedents ?? collect();
         $allergies = $patient->allergies ?? collect();
         $ordonnances = $patient->ordonnances()->orderBy('date_prescription', 'desc')->get() ?? collect();
-        $documents = $patient->documents ?? collect();
+        // Explicitly fetch documents sorted by date
+        $documents = $patient->documents()->latest()->get();
 
-        // Pour diagnostiques et traitements (si vous avez ces modèles)
-        $diagnostiques = method_exists($patient, 'diagnostiques') ? $patient->diagnostiques : collect();
-        $traitements = method_exists($patient, 'traitements') ? $patient->traitements : collect();
+        // Pour diagnostiques et traitements - these tables don't exist yet, return empty collections
+        $diagnostiques = collect();
+        $traitements = collect();
 
         return view('patient.medical_record', compact(
             'patient', // N'oubliez pas d'envoyer $patient à la vue aussi
@@ -62,6 +63,14 @@ class DossierMedicalController extends Controller
         $antecedent->save();
 
         return back()->with('success', 'Antécédent ajouté avec succès.');
+    }
+
+    public function showAntecedent($id)
+    {
+        $antecedent = Antecedent::where('patient_id', Auth::guard('patient')->id())
+            ->findOrFail($id);
+
+        return response()->json($antecedent);
     }
 
     public function updateAntecedent(Request $request, $id)
@@ -122,29 +131,40 @@ class DossierMedicalController extends Controller
     // CRUD pour Documents
     public function storeDocument(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('Attempting to store document', ['patient_id' => Auth::guard('patient')->id(), 'data' => $request->except('fichier')]);
+
         $request->validate([
             'type_document' => 'required|in:ordonnance,resultat_analyse,radiologie,certificat,autre',
             'titre' => 'required|string|max:255',
             'date_document' => 'nullable|date',
-            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'fichier' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'description' => 'nullable|string|max:500',
         ]);
 
         if ($request->hasFile('fichier')) {
-            $path = $request->file('fichier')->store('documents_medicaux', 'public');
+            try {
+                $path = $request->file('fichier')->store('documents_medicaux', 'public');
+                \Illuminate\Support\Facades\Log::info('File stored at: ' . $path);
 
-            $document = new DocumentMedical();
-            $document->patient_id = Auth::guard('patient')->id();
-            $document->type_document = $request->type_document;
-            $document->titre = $request->titre;
-            $document->date_document = $request->date_document;
-            $document->chemin_fichier = $path;
-            $document->description = $request->description;
-            $document->save();
+                $document = new DocumentMedical();
+                $document->patient_id = Auth::guard('patient')->id();
+                $document->type_document = $request->type_document;
+                $document->titre = $request->titre;
+                $document->date_document = $request->date_document;
+                $document->chemin_fichier = $path;
+                $document->description = $request->description;
+                $document->save();
 
-            return back()->with('success', 'Document ajouté avec succès.');
+                \Illuminate\Support\Facades\Log::info('Document saved to DB', ['id' => $document->id]);
+
+                return back()->with('success', 'Document ajouté avec succès.');
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error storing document: ' . $e->getMessage());
+                return back()->with('error', 'Erreur interne lors de l\'enregistrement.');
+            }
         }
 
+        \Illuminate\Support\Facades\Log::warning('No file found in request');
         return back()->with('error', 'Erreur lors du téléchargement du fichier.');
     }
 

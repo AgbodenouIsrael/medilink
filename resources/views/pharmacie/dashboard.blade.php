@@ -166,14 +166,21 @@
             <div class="card">
                 <h3>Actions rapides</h3>
                 <div class="quick-action" onclick="window.location.href='{{ route('pharmacie_sales') }}'">
-                    <i class="fas fa-shopping-cart" style="color:#00A651; margin-right:15px;"></i>
+                    <i class="fas fa-shopping-cart" style="color:#FF6600; margin-right:15px;"></i>
                     <div><strong>Nouvelle vente</strong><br><small>Traiter une nouvelle transaction</small></div>
                 </div>
-                <div class="quick-action">
-                    <i class="fas fa-plus-circle" style="color:#00A651; margin-right:15px;"></i>
-                    <div><strong> <a href="{{ route('pharmacie.add_product') }}"> Ajouter un
-                                produit</strong><br><small>Ajouter un nouvel article à l'inventaire</small></a>
+                <div class="quick-action" onclick="window.location.href='{{ route('pharmacie.add_product') }}'">
+                    <i class="fas fa-plus-circle" style="color:#FF6600; margin-right:15px;"></i>
+                    <div><strong>Ajouter un produit</strong><br><small>Ajouter un nouvel article à l'inventaire</small>
                     </div>
+                </div>
+                <div class="quick-action" onclick="window.location.href='{{ route('pharmacie.history') }}'">
+                    <i class="fas fa-history" style="color:#FF6600; margin-right:15px;"></i>
+                    <div><strong>Historique des ventes</strong><br><small>Voir les transactions passées</small></div>
+                </div>
+                <div class="quick-action" onclick="window.location.href='{{ route('pharmacie.messages') }}'">
+                    <i class="fas fa-comments" style="color:#FF6600; margin-right:15px;"></i>
+                    <div><strong>Messages</strong><br><small>Conversations patients/médecins</small></div>
                 </div>
             </div>
         </div>
@@ -181,23 +188,32 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Simulation du graphique
+        // Simulation du graphique - To be replaced by real data in future iterations if hourly data is available
         const ctx = document.getElementById('salesChart').getContext('2d');
+
+        // Example: passing data from controller (if available) or keeping placeholder
+        // For now, let's just make sure it renders
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['08:00', '10:00', '12:00', '14:00', '16:00'],
+                labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
                 datasets: [{
-                    label: 'Sales (CFA)',
-                    data: [0, 0, 0, 0, 0], // Placeholder for real hourly data
-                    borderColor: '#00A651',
+                    label: 'Ventes (CFA)',
+                    data: [0, 0, 0, 0, 0, 0, 0], // Placeholder 
+                    borderColor: '#FF6600',
                     tension: 0.4,
                     fill: true,
-                    backgroundColor: 'rgba(0, 166, 81, 0.1)'
+                    backgroundColor: 'rgba(255, 102, 0, 0.1)'
                 }]
             },
-            options: { plugins: { legend: { display: false } } }
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
         });
     </script>
 @endsection

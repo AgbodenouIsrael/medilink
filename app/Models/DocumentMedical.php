@@ -17,6 +17,10 @@ class DocumentMedical extends Model
         'description',
     ];
 
+    protected $casts = [
+        'date_document' => 'date',
+    ];
+
     public function patient() // Relation avec le patient
     {
         return $this->belongsTo(Patient::class);

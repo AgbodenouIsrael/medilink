@@ -31,9 +31,9 @@
         }
 
         .filter-chip.active {
-            background: #00A651;
+            background: #FF6600;
             color: white;
-            border-color: #00A651;
+            border-color: #FF6600;
         }
 
         /* Liste des ordonnances (Gauche) */
@@ -70,8 +70,8 @@
         }
 
         .prescription-item.active {
-            background: #f0fdf4;
-            border-right: 4px solid #00A651;
+            background: #FFF3E0;
+            border-right: 4px solid #FF6600;
         }
 
         /* Détails (Droite) */
@@ -146,7 +146,7 @@
                 <button onclick="closeModal()"
                     style="flex:1; padding:12px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer;">Annuler</button>
                 <button onclick="confirmValidation()"
-                    style="flex:1; padding:12px; border-radius:8px; border:none; background:#00A651; color:white; font-weight:600; cursor:pointer;">Confirmer
+                    style="flex:1; padding:12px; border-radius:8px; border:none; background:#FF6600; color:white; font-weight:600; cursor:pointer;">Confirmer
                     la délivrance</button>
             </div>
         </div>
@@ -159,7 +159,7 @@
         </div>
         <div style="display:flex; gap:10px;">
             <button class="filter-chip"><i class="fas fa-file-export"></i> Export</button>
-            <button class="filter-chip" style="background:#00A651; color:white;"><i class="fas fa-plus"></i> Nouvelles
+            <button class="filter-chip" style="background:#FF6600; color:white;"><i class="fas fa-plus"></i> Nouvelles
                 Prescriptions</button>
         </div>
     </header>
@@ -178,7 +178,7 @@
 
                 @forelse($ordonnances as $ordonnance)
                     <div class="prescription-item"
-                        onclick="openValidation('{{ $ordonnance->patient->prenom }} {{ $ordonnance->patient->nom }}', 'Dr. {{ $ordonnance->medecin->nom }}', this)">
+                        onclick="showDetails({{ $ordonnance->id }}, '{{ $ordonnance->patient->prenom }} {{ $ordonnance->patient->nom }}', 'Dr. {{ $ordonnance->medecin->nom }}', '{{ $ordonnance->numero_ordonnance }}', '{{ $ordonnance->date_prescription->format('d/m/Y') }}', {{ json_encode($ordonnance->medicaments) }}, '{{ $ordonnance->statut }}')">
                         <span
                             class="badge {{ $ordonnance->statut === 'terminee' ? 'badge-completed' : ($ordonnance->statut === 'valide' ? 'badge-validated' : 'badge-pending') }}">
                             {{ ucfirst($ordonnance->statut) }}
@@ -191,10 +191,6 @@
                             <div><span>{{ $ordonnance->numero_ordonnance }}</span> ·
                                 <small>{{ $ordonnance->date_prescription->format('d/m/Y') }}</small>
                             </div>
-                            <button class="validate-btn"
-                                style="background:{{ $ordonnance->statut === 'en_attente' ? '#00A651' : '#f0f0f0' }};color:{{ $ordonnance->statut === 'en_attente' ? 'white' : '#333' }};border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">
-                                {{ $ordonnance->statut === 'en_attente' ? 'Valider' : 'Voir' }}
-                            </button>
                         </div>
                     </div>
                 @empty
@@ -206,53 +202,129 @@
             </div>
         </div>
 
-        <div class="details-view details-placeholder">
+        <div id="details-view" class="details-view details-placeholder">
             <i class="far fa-file-alt"></i>
             <h3 style="color:#333;">Sélectionnez une prescription pour voir les détails</h3>
             <p>Choisissez un élément de la liste pour voir tous les détails médicaux,<br>l'historique du patient et
                 les options de validation.</p>
+        </div>
+
+        <!-- Hidden Template for Details -->
+        <div id="details-template"
+            style="display:none; background:white; border-radius:12px; border:1px solid #eee; padding:30px; width:100%;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:start; border-bottom:1px solid #eee; padding-bottom:20px; margin-bottom:20px;">
+                <div>
+                    <h2 id="d-patient" style="margin:0 0 5px 0;">Patient Name</h2>
+                    <p id="d-num" style="color:#888; margin:0;">#ORD-XXXX</p>
+                </div>
+                <div id="d-status" class="badge">Statut</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:30px;">
+                <div>
+                    <strong style="display:block; color:#888; font-size:12px; margin-bottom:5px;">MÉDECIN
+                        PRESCRIPTEUR</strong>
+                    <div id="d-doctor" style="font-weight:600;">Dr. Name</div>
+                </div>
+                <div>
+                    <strong style="display:block; color:#888; font-size:12px; margin-bottom:5px;">DATE</strong>
+                    <div id="d-date" style="font-weight:600;">01/01/2026</div>
+                </div>
+            </div>
+
+            <div style="background:#f9f9f9; padding:20px; border-radius:12px; margin-bottom:30px;">
+                <h4 style="margin-top:0;">Médicaments Prescrits</h4>
+                <ul id="d-meds" style="padding-left:20px;">
+                    <!-- Meds list -->
+                </ul>
+            </div>
+
+            <button id="btn-serve" onclick="servePrescription()"
+                style="width:100%; padding:15px; border-radius:8px; border:none; background:#FF6600; color:white; font-weight:600; cursor:pointer;">
+                Marquer comme Servie / Délivrée
+            </button>
         </div>
     </div>
 @endsection
 
 @section('scripts')
     <script>
+        let currentId = null;
 
-        // Fonction pour ouvrir la modale
-        function openValidation(patientName, doctorName, row) {
-            document.getElementById('modalPatient').innerText = patientName;
-            document.getElementById('modalDoctor').innerText = doctorName;
-            document.getElementById('validationModal').style.display = 'flex';
-            // remember selected row for confirmation
-            window._lastPrescriptionRow = row || null;
-        }
+        function showDetails(id, patient, doctor, numero, date, medicaments, statut) {
+            currentId = id;
 
-        // Fonction pour fermer la modale
-        function closeModal() {
-            document.getElementById('validationModal').style.display = 'none';
-        }
+            // Populate
+            document.getElementById('d-patient').innerText = patient;
+            document.getElementById('d-doctor').innerText = doctor;
+            document.getElementById('d-num').innerText = numero;
+            document.getElementById('d-date').innerText = date;
 
-        // Fonction de confirmation finale
-        function confirmValidation() {
-            // mark the selected prescription as completed
-            if (window._lastPrescriptionRow) {
-                const badge = window._lastPrescriptionRow.querySelector('.badge');
-                if (badge) { badge.className = 'badge badge-completed'; badge.innerText = 'Terminé'; }
+            const badge = document.getElementById('d-status');
+            badge.innerText = statut.charAt(0).toUpperCase() + statut.slice(1);
+            badge.className = 'badge ' + (statut === 'terminee' ? 'badge-completed' : (statut === 'valide' ? 'badge-validated' : 'badge-pending'));
+
+            const medsList = document.getElementById('d-meds');
+            medsList.innerHTML = '';
+            if (medicaments && medicaments.length > 0) {
+                medicaments.forEach(m => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${m.nom_medicament || m.nom}</strong> ${m.dosage || ''} - ${m.quantite || 1} unité(s)<br><small>${m.instructions || ''}</small>`;
+                    li.style.marginBottom = '10px';
+                    medsList.appendChild(li);
+                });
+            } else {
+                medsList.innerHTML = '<li style="color:#999">Aucun médicament listé (ou format ancien).</li>';
             }
-            alert("Ordonnance validée ! Les médicaments ont été déduits du stock et la vente est enregistrée.");
-            closeModal();
+
+            // Show/Hide Serve Button
+            const btn = document.getElementById('btn-serve');
+            if (statut === 'terminee') {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'block';
+            }
+
+            // Switch View
+            document.querySelector('.details-placeholder').style.display = 'none';
+            const container = document.getElementById('details-view');
+            container.className = 'details-view'; // remove placeholder class
+            container.innerHTML = '';
+            container.appendChild(document.getElementById('details-template').cloneNode(true));
+            container.querySelector('#details-template').style.display = 'block';
+            container.querySelector('#details-template').id = ""; // remove id to avoid dupes
+
+            // Re-attach event to the new button in the DOM
+            const newBtn = container.querySelector('#btn-serve');
+            if (statut === 'terminee') {
+                newBtn.style.display = 'none';
+            } else {
+                newBtn.onclick = servePrescription;
+            }
         }
 
-        // Attacher l'événement aux boutons "Validate" existants
-        // Attach validate action for validate buttons
-        document.querySelectorAll('.validate-btn, .btn-reorder').forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                const row = this.closest('.prescription-item');
-                const patient = (row.querySelector('strong') && row.querySelector('strong').innerText) || '';
-                const doctor = (row.querySelector('span') && row.querySelector('span').innerText) || '';
-                openValidation(patient, doctor, row);
-            });
-        });
+        function servePrescription() {
+            if (!currentId) return;
+            if (!confirm("Confirmer la délivrance de cette ordonnance ?")) return;
 
+            fetch(`/pharmacie_prescription/${currentId}/serve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Ordonnance servie avec succès');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + data.message);
+                    }
+                })
+                .catch(err => alert('Erreur de connexion'));
+        }
     </script>
 @endsection{}

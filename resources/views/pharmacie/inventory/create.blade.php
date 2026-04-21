@@ -63,9 +63,9 @@
         }
 
         .form-group input:focus {
-            border-color: var(--primary-green);
+            border-color: #FF6600;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.1);
+            box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.1);
         }
 
         .input-with-icon {
@@ -98,13 +98,26 @@
         }
 
         .btn-submit {
-            background: var(--primary-green);
+            background: #FF6600;
+            /* Orange */
             color: white;
             border: none;
-            padding: 12px 35px;
+            padding: 15px 40px;
+            /* Larger padding */
             border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
+            font-size: 16px;
+            /* Larger font */
+            box-shadow: 0 4px 6px rgba(255, 102, 0, 0.2);
+            /* Shadow for prominence */
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            background: #e65c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(255, 102, 0, 0.3);
         }
 
         .error-msg {

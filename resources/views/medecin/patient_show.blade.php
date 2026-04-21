@@ -66,6 +66,30 @@
                         </ul>
                     @endif
                 </div>
+
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-blue-600">Documents Médicaux</h3>
+                    @if($patient->documents->isEmpty())
+                        <p class="text-gray-500 italic">Aucun document importé.</p>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($patient->documents as $doc)
+                                <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded border border-gray-100">
+                                    <div class="flex items-center gap-3 overflow-hidden">
+                                        <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                                        <div class="overflow-hidden">
+                                            <p class="text-sm font-medium text-gray-800 truncate">{{ $doc->titre }}</p>
+                                            <p class="text-xs text-gray-500">{{ $doc->date_document ? $doc->date_document->format('d/m/Y') : 'Date inconnue' }}</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ asset('storage/' . $doc->chemin_fichier) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 transition">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <!-- Colonne Droite : Consultations & Mises à jour -->

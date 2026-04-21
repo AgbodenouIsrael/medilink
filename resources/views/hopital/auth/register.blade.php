@@ -105,6 +105,22 @@
                 </div>
 
                 <div class="input-group">
+                    <label><i class="fas fa-hand-holding-medical"></i> Spécialités & Services offerts</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; margin-top: 5px;">
+                        @foreach($specialties as $specialite)
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; font-size: 0.9em;">
+                                <input type="checkbox" name="specialites[]" value="{{ $specialite->id }}" 
+                                    {{ is_array(old('specialites')) && in_array($specialite->id, old('specialites')) ? 'checked' : '' }}
+                                    style="width: auto;">
+                                {{ $specialite->nom }}
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('specialites') <span class="error-msg">{{ $message }}</span> @enderror
+                    <small>Sélectionnez les principaux services que votre établissement propose.</small>
+                </div>
+
+                <div class="input-group">
                     <label for="password"><i class="fas fa-lock"></i> Mot de Passe (Administrateur)</label>
                     <input type="password" id="password" name="password" required>
                     @error('password') <span class="error-msg">{{ $message }}</span> @enderror

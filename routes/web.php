@@ -5,6 +5,7 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\MedecinController;
 use App\Http\Controllers\HopitalController;
 use App\Http\Controllers\PharmacieController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DossierMedicalController;
 use App\Http\Controllers\ChatController;
@@ -43,6 +44,7 @@ Route::middleware(['auth.patient'])->group(function () {
     Route::get('/ma_fiche_medicale', [DossierMedicalController::class, 'index'])->name('ma_fiche_medicale');
 
     // Antécédents
+    Route::get('/antecedents/{id}', [DossierMedicalController::class, 'showAntecedent'])->name('antecedent.show');
     Route::post('/antecedents', [DossierMedicalController::class, 'storeAntecedent'])->name('antecedent.store');
     Route::put('/antecedents/{id}', [DossierMedicalController::class, 'updateAntecedent'])->name('antecedent.update');
     Route::delete('/antecedents/{id}', [DossierMedicalController::class, 'destroyAntecedent'])->name('antecedent.destroy');
@@ -82,23 +84,8 @@ Route::middleware(['auth.patient'])->group(function () {
     // Dans le groupe middleware patient
     Route::put('/profil/update', [PatientController::class, 'update'])->name('patient.update');
 
-    // Fiche médicale du patient
-    Route::get('/ma_fiche_medicale', function () {
-        $patient = Auth::guard('patient')->user();
-
-        return view('patient.medical_record', [
-            'patient' => $patient,
-            'antecedents' => $patient->antecedents ?? collect(),
-            'allergies' => $patient->allergies ?? collect(),
-            'ordonnances' => $patient->ordonnances ?? collect(),
-            'documents' => $patient->documents_medicaux ?? collect(),
-        ]);
-    })->name('ma_fiche_medicale')->middleware('auth.patient');
-
     // Trouver pharmacie
-    Route::get('/trouver_pharmacie', function () {
-        return view('patient.find_pharmacy');
-    })->name('trouver_pharmacie');
+    Route::get('/trouver_pharmacie', [App\Http\Controllers\PatientController::class, 'findPharmacy'])->name('trouver_pharmacie');
 
     // Messages
     // Espace Patient - Chat
@@ -112,13 +99,11 @@ Route::middleware(['auth.patient'])->group(function () {
     Route::delete('/autorisations/{id}', [App\Http\Controllers\AutorisationController::class, 'destroy'])->name('autorisations.destroy');
 
     // Guide hôpitaux
-    Route::get('/guide_hopitaux', function () {
-        return view('guide_hopitaux');
-    })->name('guide_hopitaux');
+    Route::get('/guide_hopitaux', [App\Http\Controllers\PatientController::class, 'guideHospitals'])->name('guide_hopitaux');
 
     // Profil patient
     Route::get('/profil', function () {
-        return view('profil');
+        return view('patient.profile');
     })->name('profil');
 
     // Mettre à jour le profil
@@ -188,6 +173,15 @@ Route::middleware(['auth.hopital'])->group(function () {
     Route::post('/hopital/medecin/{id}/approve', [HopitalController::class, 'approveMedecin'])->name('hopital.medecin.approve');
     Route::post('/hopital/medecin/{id}/reject', [HopitalController::class, 'rejectMedecin'])->name('hopital.medecin.reject');
 
+    // Gestion des Spécialités
+    Route::get('/hopital/specialites', [HopitalController::class, 'specialites'])->name('hopital.specialites.index');
+    Route::post('/hopital/specialites', [HopitalController::class, 'addSpecialite'])->name('hopital.specialites.add');
+    Route::put('/hopital/specialites/{id}', [HopitalController::class, 'updateSpecialite'])->name('hopital.specialites.update');
+    Route::delete('/hopital/specialites/{id}', [HopitalController::class, 'removeSpecialite'])->name('hopital.specialites.remove');
+
+    // Mise à jour du profil
+    Route::post('/profil_hopital', [HopitalController::class, 'updateProfil'])->name('hopital.update_profil');
+
     // Logout hôpital
     Route::post('/logout/hopital', [AuthController::class, 'logout'])->name('logout.hopital');
 });
@@ -205,22 +199,47 @@ Route::middleware(['auth.pharmacie'])->group(function () {
 
     // Prescriptions
     Route::get('/pharmacie_prescription', [PharmacieController::class, 'prescriptions'])->name('pharmacie_prescriptions');
+    Route::post('/pharmacie_prescription/{id}/serve', [PharmacieController::class, 'markAsServed'])->name('pharmacie.prescription.serve');
 
     // Inventaire
     Route::get('/pharmacie_inventory', [PharmacieController::class, 'inventory'])->name('pharmacie.inventory');
 
     // Ventes
     Route::get('/pharmacie_sales', [PharmacieController::class, 'sales'])->name('pharmacie_sales');
+    Route::post('/pharmacie_sales', [PharmacieController::class, 'processSale'])->name('pharmacie.process_sale');
+    Route::get('/pharmacie_history', [PharmacieController::class, 'salesHistory'])->name('pharmacie.history');
 
     // Ajouter produit
     Route::get('/pharmacie_add_product', [PharmacieController::class, 'createProduct'])->name('pharmacie.add_product');
     Route::post('/pharmacie_add_product', [PharmacieController::class, 'storeProduct'])->name('pharmacie.store_product');
 
+    // Messages
+    Route::get('/pharmacie_messages', [App\Http\Controllers\PharmacieChatController::class, 'index'])->name('pharmacie.messages');
+    Route::get('/pharmacie_messages/{id}', [App\Http\Controllers\PharmacieChatController::class, 'show'])->name('pharmacie.messages.show');
+    Route::post('/pharmacie_messages/{id}', [App\Http\Controllers\PharmacieChatController::class, 'store'])->name('pharmacie.messages.store');
+
     // Profil pharmacie
     Route::get('/pharmacie_profil', [PharmacieController::class, 'profil'])->name('pharmacie_profil');
+    Route::post('/pharmacie_profil', [PharmacieController::class, 'updateProfil'])->name('pharmacie.update_profil');
 
     // Logout pharmacie
     Route::post('/logout/pharmacie', [AuthController::class, 'logout'])->name('logout.pharmacie');
 });
 
 // ============================================
+
+// ============================================
+// ROUTES PROTÉGÉES - ADMIN
+// ============================================
+Route::get('/admin/login', [AdminController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.submit');
+Route::post('/logout/admin', [AdminController::class, 'logout'])->name('admin.logout');
+
+Route::middleware(['auth.admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/validations', [AdminController::class, 'validations'])->name('admin.validations');
+    Route::get('/admin/entities', [AdminController::class, 'entities'])->name('admin.entities');
+    Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('/admin/approve', [AdminController::class, 'approve'])->name('admin.approve');
+    Route::post('/admin/reject', [AdminController::class, 'reject'])->name('admin.reject');
+});
